@@ -1,0 +1,84 @@
+{
+  "page": 1,
+  "per_page": 4,
+  "total": 10,
+  "total_pages": 3,
+  "data": [
+    {
+      "inspection_id": "INS001",
+      "property_name": "Sunset Villa",
+      "address": "123 Sunset Blvd, Malibu, CA",
+      "inspection_type": "New Policy",
+      "status": "Completed",
+      "assigned_date": "2025-09-20",
+      "due_date": "2025-09-25",
+      "priority": "High",
+      "last_updated": "2025-09-24",
+      "sync_status": "Synced",
+      "media": [
+        {
+          "type": "image",
+          "url": "https://images.pexels.com/photos/2765586/pexels-photo-2765586.jpeg?auto=compress&cs=tinysrgb&w=1440&dpr=1"
+        },
+        {
+          "type": "image",
+          "url": "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=500&auto=format&fit=crop&q=60"
+        }
+      ]
+    },
+    {
+      "inspection_id": "INS002",
+      "property_name": "Mountain Retreat",
+      "address": "456 Mountain Rd, Aspen, CO",
+      "inspection_type": "Renewal",
+      "status": "In Progress",
+      "assigned_date": "2025-09-18",
+      "due_date": "2025-09-30",
+      "priority": "Medium",
+      "last_updated": "2025-09-22",
+      "sync_status": "Offline",
+      "media": [
+        {
+          "type": "image",
+          "url": "https://plus.unsplash.com/premium_photo-1678565869434-c81195861939?w=500&auto=format&fit=crop&q=60"
+        }
+      ]
+    },
+    {
+      "inspection_id": "INS003",
+      "property_name": "Lakeside Cabin",
+      "address": "789 Lakeside Dr, Tahoe City, CA",
+      "inspection_type": "Damage Claim",
+      "status": "Pending",
+      "assigned_date": "2025-09-15",
+      "due_date": "2025-09-20",
+      "priority": "High",
+      "last_updated": "2025-09-18",
+      "sync_status": "Offline",
+      "media": [
+        {
+          "type": "image",
+          "url": "https://plus.unsplash.com/premium_photo-1683309565422-77818a287060?w=500&auto=format&fit=crop&q=60"
+        }
+      ]
+    },
+    {
+      "inspection_id": "INS004",
+      "property_name": "Urban Loft",
+      "address": "101 Urban St, New York, NY",
+      "inspection_type": "New Policy",
+      "status": "Completed",
+      "assigned_date": "2025-09-10",
+      "due_date": "2025-09-15",
+      "priority": "Low",
+      "last_updated": "2025-09-14",
+      "sync_status": "Synced",
+      "media": [
+        {
+          "type": "image",
+          "url": "https://plus.unsplash.com/premium_photo-1678565869434-c81195861939?w=500&auto=format&fit=crop&q=60"
+        }
+      ]
+    }
+  ]
+}
