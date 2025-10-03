@@ -23,6 +23,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SliverAppBar(
             centerTitle: false,
             pinned: true,
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 28,
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
             elevation: 0,
             expandedHeight: 100,
             backgroundColor: Colors.transparent,

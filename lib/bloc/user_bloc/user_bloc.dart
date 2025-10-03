@@ -5,6 +5,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:i_p_c/model/user_model.dart';
+import 'package:i_p_c/repository/database_repo.dart';
 
 part 'user_event.dart';
 part 'user_state.dart';
@@ -31,11 +32,36 @@ final _loginUserDetailsAgent = User(
 late User _signupUser;
 
 class UserBloc extends Bloc<UserEvent, UserState> {
-  static late User userDetails;
+  //static late User userDetails;
 
   UserBloc() : super(UserInitial()) {
     on<UserSignUpEvent>(_userSignUpEvent);
     on<UserLoginEvent>(_userLoginEvent);
+  }
+
+
+  // sign up function call in the application
+  FutureOr<void> _userSignUpEvent(
+      UserSignUpEvent event,
+      Emitter<UserState> emit,
+      ) async {
+    try {
+      emit(UserLoadingState());
+      await DatabaseService.addUser(User(
+        empId: event.user.empId,
+        name: event.user.name,
+        email: event.user.email,
+        branch: event.user.branch,
+        role: event.user.role,
+        password: event.user.password,
+        filePath: event.user.filePath,
+      ));
+      emit(
+        UserSuccessState('User Logged In as ${event.user.role}', _signupUser),
+      );
+    } catch (e) {
+      emit(UserErrorState(e.toString()));
+    }
   }
 
   // code for the user login state
@@ -62,29 +88,5 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  // sign up function call in the application
-  FutureOr<void> _userSignUpEvent(
-    UserSignUpEvent event,
-    Emitter<UserState> emit,
-  ) async {
-    try {
-      emit(UserLoadingState());
-      await Future.delayed(Duration(seconds: 2));
-      userDetails = User(
-        empId: event.user.empId,
-        name: event.user.name,
-        email: event.user.email,
-        branch: event.user.branch,
-        role: event.user.role,
-        password: event.user.password,
-        filePath: event.user.filePath,
-      );
-      _signupUser = userDetails;
-      emit(
-        UserSuccessState('User Logged In as ${userDetails.role}', _signupUser),
-      );
-    } catch (e) {
-      emit(UserErrorState(e.toString()));
-    }
-  }
+
 }

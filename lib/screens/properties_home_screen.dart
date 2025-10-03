@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:cbl/cbl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +10,7 @@ import 'package:i_p_c/model/user_model.dart';
 import 'package:i_p_c/utils/details_container.dart';
 import '../bloc/user_bloc/user_bloc.dart' show UserBloc;
 import '../model/inspection_detailes_model.dart';
+import '../repository/database_repo.dart';
 import '../utils/count_display_cart.dart' show StatCard;
 import '../utils/scaffold_message_notifier.dart';
 
@@ -109,8 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
               IconButton(
                 icon: const Icon(Icons.search, color: Colors.white),
                 onPressed: () {
-                  print('Button pressed!');
-                  context.go('/settings');
+
                 },
               ),
               IconButton(
@@ -118,7 +119,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icons.settings,
                   color: Colors.white,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  context.push('/settings');
+                },
               ),
               const SizedBox(width: 8),
             ],
@@ -249,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(onPressed: (){
-        print('The floating action button was pressed');
+        DatabaseService().checkthecouchsetup();
       } , child:  Icon(Icons.person),),
     );
   }

@@ -90,13 +90,21 @@ packages:
     source: hosted
     version: "0.3.5"
   cbl:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cbl
       sha256: ef1c74d22217c66fd33cbe1594aca819be879aadc5837814e0742b9209546354
       url: "https://pub.dev"
     source: hosted
     version: "3.6.0+2"
+  cbl_dart:
+    dependency: "direct main"
+    description:
+      name: cbl_dart
+      sha256: "7728dc2859d41e2635ece698cad631449b1c99e7aaba48b67609124b46ef8757"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.1"
   cbl_flutter:
     dependency: "direct dev"
     description:
@@ -105,6 +113,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.5"
+  cbl_flutter_ce:
+    dependency: "direct dev"
+    description:
+      name: cbl_flutter_ce
+      sha256: "26f33dc1990b982a2c49135d129ba28c4a6db4fd82b7220937a73246cf9fec4d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.1"
+  cbl_flutter_install:
+    dependency: transitive
+    description:
+      name: cbl_flutter_install
+      sha256: be999e7b1eda7182c66b9d97b347d22119014d742eb80a54eee1e8cfef16f4b9
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0+6"
   cbl_flutter_platform_interface:
     dependency: transitive
     description:

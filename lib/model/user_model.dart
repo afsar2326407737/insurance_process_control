@@ -27,4 +27,27 @@ class User extends Equatable {
   String toString() {
     return 'User(empId: $empId, name: $name, email: $email, branch: $branch, role: $role, file: $filePath)';
   }
+
+  Map<String, Object?> toMap() {
+    return {
+      'empId': empId,
+      'name': name,
+      'email': email,
+      'branch': branch,
+      'role': role,
+      'password': password,
+      'type': 'user', // useful for querying later
+    };
+  }
+
+  factory User.fromMap(Map<String, Object?> map) {
+    return User(
+      empId: map['empId'] as String,
+      name: map['name'] as String,
+      email: map['email'] as String,
+      branch: map['branch'] as String,
+      role: map['role'] as String,
+      password: map['password'] as String,
+    );
+  }
 }

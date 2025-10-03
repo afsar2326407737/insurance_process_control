@@ -110,16 +110,6 @@ class _SignupPageState extends State<SignupPage> {
       return;
     }
 
-    final userData = {
-      "empId": _userEmpIdController.text,
-      "name": _userNameController.text,
-      "email": _userEmailController.text,
-      "branch": _userBranchController.text,
-      "role": _role,
-      "password": _passwordController.text,
-      "file": _pickedFile?.path,
-    };
-
     _userBloc.add(
       UserSignUpEvent(
         User(

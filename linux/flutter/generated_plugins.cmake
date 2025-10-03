@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  cbl_flutter_ce
   file_selector_linux
 )
 
