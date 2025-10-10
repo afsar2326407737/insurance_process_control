@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "390505621519",
+    "project_id": "insurance-process-controle",
+    "storage_bucket": "insurance-process-controle.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:390505621519:android:dc7f8294999eebbc879b7a",
+        "android_client_info": {
+          "package_name": "com.example.i_p_c"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACghbER1FdaFKona9cwENsIqI9UGDqSVg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
