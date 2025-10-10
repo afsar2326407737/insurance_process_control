@@ -1,8 +1,8 @@
 {
   "page": 1,
-  "per_page": 4,
+  "per_page": 5,
   "total": 10,
-  "total_pages": 3,
+  "total_pages": 2,
   "data": [
     {
       "inspection_id": "INS001",
@@ -16,6 +16,10 @@
       "last_updated": "2025-09-24",
       "sync_status": "Synced",
       "media": [
+        {
+          "type": "image",
+          "url": "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=500&auto=format&fit=crop&q=60"
+        },
         {
           "type": "image",
           "url": "https://images.pexels.com/photos/2765586/pexels-photo-2765586.jpeg?auto=compress&cs=tinysrgb&w=1440&dpr=1"
@@ -77,6 +81,32 @@
         {
           "type": "image",
           "url": "https://plus.unsplash.com/premium_photo-1678565869434-c81195861939?w=500&auto=format&fit=crop&q=60"
+        }
+      ]
+    },
+    {
+      "inspection_id": "INS005",
+      "property_name": "Sunrise Villa",
+      "address": "123 Sunrise Blvd, Malibu, CA",
+      "inspection_type": "New Policy",
+      "status": "Completed",
+      "assigned_date": "2025-09-25",
+      "due_date": "2025-09-27",
+      "priority": "High",
+      "last_updated": "2025-09-26",
+      "sync_status": "Synced",
+      "media": [
+        {
+          "type": "image",
+          "url": "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=500&auto=format&fit=crop&q=60"
+        },
+        {
+          "type": "image",
+          "url": "https://images.pexels.com/photos/2765586/pexels-photo-2765586.jpeg?auto=compress&cs=tinysrgb&w=1440&dpr=1"
+        },
+        {
+          "type": "image",
+          "url": "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=500&auto=format&fit=crop&q=60"
         }
       ]
     }

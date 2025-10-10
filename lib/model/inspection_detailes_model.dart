@@ -40,27 +40,24 @@ class Inspection {
       lastUpdated: json['last_updated'] ?? '',
       syncStatus: json['sync_status'] ?? '',
       media: json['media'] != null
-          ? List<Media>.from(
-          json['media'].map((item) => Media.fromJson(item)))
+          ? List<Media>.from(json['media'].map((item) => Media.fromJson(item)))
           : [],
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'inspection_id': inspectionId,
-      'property_name': propertyName,
-      'address': address,
-      'inspection_type': inspectionType,
-      'status': status,
-      'assigned_date': assignedDate,
-      'due_date': dueDate,
-      'priority': priority,
-      'last_updated': lastUpdated,
-      'sync_status': syncStatus,
-      'media': media.map((e) => e.toJson()).toList(),
-    };
-  }
+  Map<String, dynamic> toMap() => {
+    'inspection_id': inspectionId,
+    'property_name': propertyName,
+    'address': address,
+    'inspection_type': inspectionType,
+    'status': status,
+    'assigned_date': assignedDate,
+    'due_date': dueDate,
+    'priority': priority,
+    'last_updated': lastUpdated,
+    'sync_status': syncStatus,
+    'media': media.map((m) => m.toMap()).toList(),
+  };
 
   static List<Inspection> fromJsonList(String jsonString) {
     final data = json.decode(jsonString) as List;
@@ -68,7 +65,7 @@ class Inspection {
   }
 
   static String toJsonList(List<Inspection> inspections) {
-    final data = inspections.map((e) => e.toJson()).toList();
+    final data = inspections.map((e) => e.toMap()).toList();
     return json.encode(data);
   }
 }
@@ -77,22 +74,13 @@ class Media {
   final String type;
   final String url;
 
-  Media({
-    required this.type,
-    required this.url,
-  });
+  Media({required this.type, required this.url});
 
   factory Media.fromJson(Map<String, dynamic> json) {
-    return Media(
-      type: json['type'] ?? '',
-      url: json['url'] ?? '',
-    );
+    return Media(type: json['type'] ?? '', url: json['url'] ?? '');
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'type': type,
-      'url': url,
-    };
+  Map<String, dynamic> toMap() {
+    return {'type': type, 'url': url};
   }
 }

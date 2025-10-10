@@ -1,11 +1,11 @@
 {
   "page": 2,
-  "per_page": 4,
+  "per_page": 5,
   "total": 10,
-  "total_pages": 3,
+  "total_pages": 2,
   "data": [
     {
-      "inspection_id": "INS005",
+      "inspection_id": "INS006",
       "property_name": "Coastal Bungalow",
       "address": "202 Coastal Rd, Miami, FL",
       "inspection_type": "Renewal",
@@ -23,7 +23,7 @@
       ]
     },
     {
-      "inspection_id": "INS006",
+      "inspection_id": "INS007",
       "property_name": "Desert Oasis",
       "address": "303 Desert Ln, Phoenix, AZ",
       "inspection_type": "Damage Claim",
@@ -41,7 +41,7 @@
       ]
     },
     {
-      "inspection_id": "INS007",
+      "inspection_id": "INS008",
       "property_name": "City Penthouse",
       "address": "404 City Ave, Los Angeles, CA",
       "inspection_type": "New Policy",
@@ -59,7 +59,7 @@
       ]
     },
     {
-      "inspection_id": "INS008",
+      "inspection_id": "INS009",
       "property_name": "Countryside Manor",
       "address": "505 Country Rd, Nashville, TN",
       "inspection_type": "Renewal",
@@ -73,6 +73,24 @@
         {
           "type": "image",
           "url": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&auto=format"
+        }
+      ]
+    },
+    {
+      "inspection_id": "INS010",
+      "property_name": "Suburban Residence",
+      "address": "606 Suburb Ln, Chicago, IL",
+      "inspection_type": "Damage Claim",
+      "status": "Pending",
+      "assigned_date": "2025-08-15",
+      "due_date": "2025-08-25",
+      "priority": "High",
+      "last_updated": "2025-08-20",
+      "sync_status": "Offline",
+      "media": [
+        {
+          "type": "image",
+          "url": "https://images.unsplash.com/photo-1511376777868-611b54f68947?w=500&auto=format"
         }
       ]
     }

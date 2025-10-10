@@ -5,7 +5,8 @@ import '../screens/properties_detail_screen.dart';
 
 class DetailsContainer extends StatefulWidget {
   final Inspection inspection;
-  const DetailsContainer(this.inspection, {super.key});
+  final bool isManager;
+  const DetailsContainer(this.inspection, this.isManager, {super.key});
 
   @override
   State<DetailsContainer> createState() => _DetailsContainerState();
@@ -77,7 +78,13 @@ class _DetailsContainerState extends State<DetailsContainer> {
               ],
             ),
           ),
-          IconButton(icon: const Icon(Icons.more_horiz), onPressed: () {}),
+          if (widget.isManager)
+            IconButton(
+              icon: const Icon(Icons.more_horiz),
+              onPressed: () {
+                print('More options tapped');
+              },
+            ),
         ],
       ),
     );
@@ -190,24 +197,6 @@ class _DetailsContainerState extends State<DetailsContainer> {
     );
   }
 
-  Widget _buildActions() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Row(
-        children: [
-          IconButton(icon: const Icon(Icons.favorite_border), onPressed: () {}),
-          IconButton(
-            icon: const Icon(Icons.mode_comment_outlined),
-            onPressed: () {},
-          ),
-          IconButton(icon: const Icon(Icons.send_outlined), onPressed: () {}),
-          const Spacer(),
-          IconButton(icon: const Icon(Icons.bookmark_border), onPressed: () {}),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCaption(BuildContext context) {
     final type = widget.inspection.inspectionType;
     final status = widget.inspection.status;
@@ -252,8 +241,8 @@ class _DetailsContainerState extends State<DetailsContainer> {
                   backgroundColor: status.toLowerCase() == 'completed'
                       ? Colors.green.shade100
                       : status.toLowerCase() == 'in progress'
-                          ? Colors.orange.shade100
-                          : Colors.red.shade100,
+                      ? Colors.orange.shade100
+                      : Colors.red.shade100,
                   label: Text(status),
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -263,8 +252,8 @@ class _DetailsContainerState extends State<DetailsContainer> {
                   backgroundColor: priority.toLowerCase() == 'high'
                       ? Colors.red.shade100
                       : priority.toLowerCase() == 'medium'
-                          ? Colors.orange.shade100
-                          : Colors.green.shade100,
+                      ? Colors.orange.shade100
+                      : Colors.green.shade100,
                   label: Text('Priority: $priority'),
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -306,7 +295,24 @@ class _DetailsContainerState extends State<DetailsContainer> {
       elevation: 6,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: _openDetails,
+        onTap: () {
+          if (widget.inspection.status.toLowerCase() != "completed") {
+            _openDetails();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'This inspection is completed and cannot be edited.',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                ),
+                backgroundColor: Colors.blue,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Column(

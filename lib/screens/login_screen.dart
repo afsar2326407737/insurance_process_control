@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:i_p_c/components/colors.dart';
+import 'package:i_p_c/repository/database_helper.dart';
 import 'package:i_p_c/utils/input_fields.dart';
 import '../bloc/user_bloc/user_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _userNameController = TextEditingController();
   final _userPasswordController = TextEditingController();
 
-  bool _hasNavigated = false; // To prevent multiple navigations
+  //prevent from the multiple navigation
+  bool _hasNavigated = false;
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _hasNavigated = true;
                                     GoRouter.of(context).go(
                                       '/home',
-                                      extra: state.userdata,
                                     );
                                   }
                                 }
@@ -150,10 +151,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
-                                  onPressed: () {
+                                  onPressed: () async{
                                     BlocProvider.of<UserBloc>(context).add(
                                       UserLoginEvent(
-                                        // trim the string to remove extra spaces
                                         _userNameController.text.trim(),
                                         _userPasswordController.text.trim(),
                                       ),

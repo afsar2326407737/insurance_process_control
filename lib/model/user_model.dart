@@ -7,7 +7,7 @@ class User extends Equatable {
   final String branch;
   final String role;
   final String password;
-  final String? filePath; // optional
+  final String? filePath;
 
   const User({
     required this.empId,
@@ -36,7 +36,7 @@ class User extends Equatable {
       'branch': branch,
       'role': role,
       'password': password,
-      'type': 'user', // useful for querying later
+      'filepath': filePath,
     };
   }
 
@@ -48,6 +48,7 @@ class User extends Equatable {
       branch: map['branch'] as String,
       role: map['role'] as String,
       password: map['password'] as String,
+      filePath: map['filepath'] as String?,
     );
   }
 }

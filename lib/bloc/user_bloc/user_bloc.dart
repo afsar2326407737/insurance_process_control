@@ -1,35 +1,13 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:developer' as developer;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:i_p_c/model/user_model.dart';
-import 'package:i_p_c/repository/database_repo.dart';
+import 'package:i_p_c/repository/database_helper.dart';
+
 
 part 'user_event.dart';
 part 'user_state.dart';
-
-/// testing purpose only Login data
-final _loginUserDetailsManager = User(
-  empId: '111',
-  name: 'Test Manager',
-  email: 'testmanager@gmail.com',
-  branch: 'Pune',
-  role: 'Manager',
-  password: 'test@123',
-);
-final _loginUserDetailsAgent = User(
-  empId: '112',
-  name: 'Test Agent',
-  email: 'testagent@gmail.com',
-  branch: 'Pune',
-  role: 'Agent',
-  password: 'test@123',
-);
-
-/// testing purpose only SignUp data
-late User _signupUser;
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   //static late User userDetails;
@@ -47,7 +25,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       ) async {
     try {
       emit(UserLoadingState());
-      await DatabaseService.addUser(User(
+      await DatabaseHelper().insertUser(User(
         empId: event.user.empId,
         name: event.user.name,
         email: event.user.email,
@@ -56,8 +34,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         password: event.user.password,
         filePath: event.user.filePath,
       ));
+      await DatabaseHelper().saveLoginState(event.user.email);
+
       emit(
-        UserSuccessState('User Logged In as ${event.user.role}', _signupUser),
+        UserSuccessState('User Logged In as ${event.user.role}', event.user),
       );
     } catch (e) {
       emit(UserErrorState(e.toString()));
@@ -71,15 +51,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   ) async {
     try {
       emit(UserLoadingState());
-      await Future.delayed(Duration(seconds: 2));
-      if (event.userEmail == _loginUserDetailsManager.email &&
-          event.userPassword == _loginUserDetailsManager.password) {
-        emit(
-          UserSuccessState('Logged In As Manager', _loginUserDetailsManager),
-        );
-      } else if (event.userEmail == _loginUserDetailsAgent.email &&
-          event.userPassword == _loginUserDetailsAgent.password) {
-        emit(UserSuccessState('Logged In As Agent', _loginUserDetailsManager));
+      final user = await DatabaseHelper().getUserByEmail(event.userEmail);
+      if (user != null && user.password == event.userPassword) {
+        // save the state of the user details in the logged in
+        await DatabaseHelper().saveLoginState(user.email);
+        emit(UserSuccessState('Logged In As ${user.role}', user));
       } else {
         emit(UserErrorState('User Password or User Name is wrong'));
       }

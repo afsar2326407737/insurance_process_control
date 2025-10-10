@@ -44,7 +44,7 @@ class InspectionLoaded extends InspectionState {
     );
   }
 
-  // ✅ FIXED: Added props for proper Equatable comparison
+
   @override
   List<Object?> get props => [inspections, isLoadingMore, hasMore];
 }
@@ -54,7 +54,7 @@ class InspectionError extends InspectionState {
 
   InspectionError(this.message);
 
-  // ✅ FIXED: Added props
+
   @override
   List<Object?> get props => [message];
 }

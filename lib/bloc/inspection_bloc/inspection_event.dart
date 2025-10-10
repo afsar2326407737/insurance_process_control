@@ -15,3 +15,13 @@ class LoadMoreInspections extends InspectionEvent {
   // TODO: implement props
   List<Object?> get props => throw UnimplementedError();
 }
+
+
+class AddInspection extends InspectionEvent {
+  final Inspection inspection;
+
+  const AddInspection(this.inspection);
+
+  @override
+  List<Object?> get props => [inspection];
+}

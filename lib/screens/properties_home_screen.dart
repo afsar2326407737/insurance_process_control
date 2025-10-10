@@ -1,16 +1,15 @@
 import 'dart:developer';
-
-import 'package:cbl/cbl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:i_p_c/bloc/inspection_bloc/inspection_bloc.dart';
 import 'package:i_p_c/model/user_model.dart';
+import 'package:i_p_c/repository/couchbase_services.dart';
+import 'package:i_p_c/repository/database_helper.dart';
+import 'package:i_p_c/screens/settings_drawer.dart';
 import 'package:i_p_c/utils/details_container.dart';
-import '../bloc/user_bloc/user_bloc.dart' show UserBloc;
 import '../model/inspection_detailes_model.dart';
-import '../repository/database_repo.dart';
 import '../utils/count_display_cart.dart' show StatCard;
 import '../utils/scaffold_message_notifier.dart';
 
@@ -23,10 +22,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  User? loggedInUser;
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<InspectionBloc>().add(InspectionInitialEvent());
     });
@@ -49,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // testing the data
   int _countNewPolicies(List<Inspection> list) {
     return list
         .where((i) => i.inspectionType.toLowerCase() == 'new policy')
@@ -57,6 +59,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _countHighPriority(List<Inspection> list) {
     return list.where((i) => i.priority.toLowerCase() == 'high').length;
+  }
+
+  // settings details fetching
+  Future<User?> getLoggedInUser() async {
+    loggedInUser = (await DatabaseHelper().getLoggedInUserEmail() != null)
+        ? await DatabaseHelper().getUserByEmail(
+            await DatabaseHelper().getLoggedInUserEmail() as String,
+          )
+        : null;
+    return loggedInUser;
   }
 
   @override
@@ -98,10 +110,28 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      drawer: FutureBuilder<User?>(
+        future: getLoggedInUser(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return SettingsDrawer(user: snapshot.data!);
+          } else {
+            return CircularProgressIndicator();
+          }
+        },
+      ),
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
           SliverAppBar(
+            leading: Builder(
+              builder: (context) => IconButton(
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                icon: Icon(Icons.menu, color: Colors.white),
+              ),
+            ),
             centerTitle: false,
             pinned: true,
             elevation: 0,
@@ -111,19 +141,10 @@ class _HomeScreenState extends State<HomeScreen> {
               IconButton(
                 icon: const Icon(Icons.search, color: Colors.white),
                 onPressed: () {
-
+                  log('Search Clicked', name: 'Button Check');
+                  GoRouter.of(context).push('/search');
                 },
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.settings,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  context.push('/settings');
-                },
-              ),
-              const SizedBox(width: 8),
             ],
             flexibleSpace: ClipRRect(
               borderRadius: const BorderRadius.vertical(
@@ -140,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const FlexibleSpaceBar(
                   collapseMode: CollapseMode.pin,
                   titlePadding: EdgeInsetsDirectional.only(
-                    start: 16,
+                    start: 56,
                     bottom: 12,
                     end: 16,
                   ),
@@ -217,7 +238,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       final listIndex = index - headerCount;
                       if (listIndex < inspections.length) {
-                        return DetailsContainer(inspections[listIndex]);
+                        return DetailsContainer(
+                          inspections[listIndex],
+                          loggedInUser?.role.toLowerCase() == 'manager',
+                        );
                       }
 
                       if (showBottomLoader) {
@@ -251,9 +275,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(onPressed: (){
-        DatabaseService().checkthecouchsetup();
-      } , child:  Icon(Icons.person),),
+      floatingActionButton: (loggedInUser?.role.toLowerCase() == 'manager')
+          ? FloatingActionButton(
+              onPressed: () async {
+                //context.push('/newinspection');
+                final data = await CouchbaseServices().getAllInspections();
+                log('Total Inspections: ${data.length}', name: 'Couchbase');
+                //log(await CouchbaseServices().printMetaResult().toString(), name: 'Couchbase');
+              },
+              child: Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

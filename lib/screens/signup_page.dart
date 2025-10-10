@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -109,7 +108,6 @@ class _SignupPageState extends State<SignupPage> {
       ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
       return;
     }
-
     _userBloc.add(
       UserSignUpEvent(
         User(
@@ -214,36 +212,44 @@ class _SignupPageState extends State<SignupPage> {
                                       context,
                                     ).textTheme.bodyLarge,
                                   ),
-                                  const SizedBox(height: 20),
-                                  RadioListTile<String>(
-                                    title: Text(
-                                      "Manager",
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                    value: "Manager",
-                                    groupValue: _role,
-                                    onChanged: (String? val) {
-                                      setState(() {
-                                        _role = val;
-                                      });
-                                    },
-                                  ),
-                                  RadioListTile<String>(
-                                    title: Text(
-                                      "Inspector",
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                    value: "Inspector",
-                                    groupValue: _role,
-                                    onChanged: (String? val) {
-                                      setState(() {
-                                        _role = val;
-                                      });
-                                    },
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: RadioListTile<String>(
+                                          title: Text(
+                                            "Manager",
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
+                                          ),
+                                          value: "Manager",
+                                          groupValue: _role,
+                                          onChanged: (String? val) {
+                                            setState(() {
+                                              _role = val;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: RadioListTile<String>(
+                                          title: Text(
+                                            "Inspector",
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
+                                          ),
+                                          value: "Inspector",
+                                          groupValue: _role,
+                                          onChanged: (String? val) {
+                                            setState(() {
+                                              _role = val;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -402,7 +408,7 @@ class _SignupPageState extends State<SignupPage> {
                                     'Login Successful',
                                     Colors.green,
                                   );
-                                  context.go('/home');
+                                  GoRouter.of(context).go('/home');
                                 } else if (state is UserErrorState) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
