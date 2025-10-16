@@ -4,7 +4,8 @@ import '../components/colors.dart';
 
 class ButtonsFun extends StatelessWidget {
   final VoidCallback onPress;
-  const ButtonsFun(this.onPress, {super.key});
+  final String text;
+  const ButtonsFun(this.onPress, this.text,{super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +30,8 @@ class ButtonsFun extends StatelessWidget {
           ),
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
-        child: const Text(
-          'Take',
+        child:  Text(
+          text,
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,

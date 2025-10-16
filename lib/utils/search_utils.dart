@@ -1,4 +1,3 @@
-// Helpers
 import 'package:flutter/material.dart';
 
 class SearchUtils{

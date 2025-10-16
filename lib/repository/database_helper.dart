@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../model/user_model.dart';
@@ -51,16 +53,16 @@ class DatabaseHelper {
     );
   }
 
-  Future<User?> getUser() async {
+  Future<List<User>> getAllUsers() async {
     final dbClient = await db;
-    final List<Map<String, dynamic>> result = await dbClient.query(
-      'users',
-    );
-    if (result.isNotEmpty) {
-      return User.fromMap(result.first);
+    final List<Map<String, dynamic>> result = await dbClient.query('users');
+    final users = result.map((e) => User.fromMap(e)).toList();
+    for (var user in users) {
+      print(user.toString());
     }
-    return null;
+    return users;
   }
+
 
   Future<User?> getUserByEmail(String email) async {
     final dbClient = await db;
@@ -75,13 +77,68 @@ class DatabaseHelper {
     return null;
   }
 
+  Future<bool> doesEmpIdExist(String empId) async {
+    final dbClient = await db;
+
+    final maps = await dbClient.query(
+      'users',
+      where: 'empId = ?',
+      whereArgs: [empId],
+    );
+
+    return maps.isNotEmpty;
+  }
+
   Future<void> saveLoginState(String userEmail) async {
     final dbClient = await db;
     await dbClient.delete('login_state');
     await dbClient.insert('login_state', {'userEmail': userEmail});
   }
 
-  // to get the logged in user email
+  Future<User?> getUserByEmpId(String empId) async {
+    final dbClient = await db;
+    final maps = await dbClient.query(
+      'users',
+      where: 'empId = ?',
+      whereArgs: [empId],
+    );
+    if (maps.isNotEmpty) {
+      return User.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  //change password funciton
+  Future<bool> updateEmployeePassword({
+    required String empId,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final dbClient = await db;
+    // Check if user exists and old password matches
+    final maps = await dbClient.query(
+      'users',
+      where: 'empId = ? AND password = ?',
+      whereArgs: [empId, oldPassword],
+    );
+    log('Checking user with empId: $empId and oldPassword: $oldPassword', name: 'DatabaseHelper');
+    log('Query result: $maps', name: 'DatabaseHelper');
+    if (maps.isNotEmpty) {
+      // Update password
+      await dbClient.update(
+        'users',
+        {'password': newPassword},
+        where: 'empId = ?',
+        whereArgs: [empId],
+      );
+      return true;
+    }
+    return false;
+  }
+
+
+
+  /// to get the logged in user email
   Future<String?> getLoggedInUserEmail() async {
     final dbClient = await db;
     final result = await dbClient.query('login_state');
@@ -91,13 +148,13 @@ class DatabaseHelper {
     return null;
   }
 
-  //logout function
+  /// logout function
   Future<void> logout() async {
     final dbClient = await db;
     await dbClient.delete('login_state');
   }
 
-  // function to check whether the email is present or not
+  /// function to check whether the email is present or not
   Future<bool> isEmailExists(String email) async {
     final dbClient = await db;
     final maps = await dbClient.query(

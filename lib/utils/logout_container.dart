@@ -44,9 +44,9 @@ class LogoutDialogState extends State<LogoutDialog> {
           child: Text('Yes'),
           onPressed: () async {
             await DatabaseHelper().logout();
-            // close the alert dialog
+            /// close the alert dialog
             Navigator.of(context).pop();
-            // close the drawer
+            /// close the drawer
             Navigator.of(context).pop();
             context.pushReplacement('/');
           },

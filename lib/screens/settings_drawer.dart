@@ -81,7 +81,9 @@ class SettingsDrawer extends StatelessWidget {
                   _buildSettingsItem(
                     icon: Icons.lock,
                     title: "Change Password",
-                    onTap: () {},
+                    onTap: () {
+                      context.push('/changepassword' , extra: user.empId );
+                    },
                   ),
                   _buildSettingsItem(
                     icon: Icons.help_outline,

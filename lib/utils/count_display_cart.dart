@@ -1,4 +1,3 @@
-// --- stat card widget ---
 import 'package:flutter/material.dart';
 
 class StatCard extends StatelessWidget {

@@ -1,10 +1,10 @@
 import 'dart:developer';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:i_p_c/utils/search_utils.dart';
 import '../bloc/search/search_bloc.dart';
+import '../utils/image_showing_utils.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -18,12 +18,10 @@ class _SearchScreenState extends State<SearchScreen> {
   final FocusNode _focusNode = FocusNode();
   List<String> results = [];
 
-
-
   @override
   void initState() {
     super.initState();
-    // Focus the text field automatically when the screen opens
+    /// Focus the text field automatically when the screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
     });
@@ -41,15 +39,14 @@ class _SearchScreenState extends State<SearchScreen> {
     context.read<SearchBloc>().add(SearchQueryChanged(value));
   }
 
-  //open the details screen
-  void _openDetails(BuildContext context, dynamic inspection, String heroTag ) {
+  ///open the details screen
+  void _openDetails(BuildContext context, dynamic inspection, String heroTag) {
     context.push(
       '/details',
       extra: {'inspection': inspection, 'heroTag': heroTag},
     );
   }
 
-// Dart
   Widget _buildFilterChips({
     required String label,
     required List<String> options,
@@ -85,12 +82,13 @@ class _SearchScreenState extends State<SearchScreen> {
       ],
     );
   }
-  // filter apply screen
+
+  /// filter apply screen
   void _showFilterSheet(BuildContext context) {
     final searchBloc = context.read<SearchBloc>();
     final state = searchBloc.state;
 
-    // Initialize selected values from current SearchLoaded state if available
+    /// Initialize selected values from current SearchLoaded state if available
     String? selectedStatus;
     String? selectedPriority;
     String? selectedType;
@@ -108,13 +106,13 @@ class _SearchScreenState extends State<SearchScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (buildContext) {
-        // local variables captured by StatefulBuilder
+        /// local variables captured by StatefulBuilder
         String? localStatus = selectedStatus;
         String? localPriority = selectedPriority;
         String? localType = selectedType;
 
         return Padding(
-          // ensure sheet moves above the keyboard when it appears
+          /// ensure sheet moves above the keyboard when it appears
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(buildContext).viewInsets.bottom + 20,
             left: 20,
@@ -193,21 +191,24 @@ class _SearchScreenState extends State<SearchScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
                             onPressed: () {
-                              searchBloc.add(SearchFilterApplied(
-                                status: localStatus,
-                                priority: localPriority,
-                                inspectionType: localType,
-                              ));
-                              Navigator.pop(context);
+                              searchBloc.add(
+                                SearchFilterApplied(
+                                  status: localStatus,
+                                  priority: localPriority,
+                                  inspectionType: localType,
+                                ),
+                              );
+                              context.pop();
                             },
-                            child:  Text(
+                            child: Text(
                               'Apply',
-                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                                letterSpacing: 0.5,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium!
+                                  .copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
+                                  ),
                             ),
                           ),
                         ),
@@ -242,16 +243,17 @@ class _SearchScreenState extends State<SearchScreen> {
                             ),
                             onPressed: () {
                               searchBloc.add(SearchFilterCleared());
-                              Navigator.pop(context);
+                              context.pop();
                             },
-                            child:  Text(
+                            child: Text(
                               'Clear',
-                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                                letterSpacing: 0.5,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium!
+                                  .copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
+                                  ),
                             ),
                           ),
                         ),
@@ -267,6 +269,9 @@ class _SearchScreenState extends State<SearchScreen> {
       },
     );
   }
+
+  /// image build preview
+
 
   @override
   Widget build(BuildContext context) {
@@ -315,15 +320,17 @@ class _SearchScreenState extends State<SearchScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top row with back and optional icon
+                      /// Top row with back and optional icon
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: Row(
                           children: [
                             IconButton(
                               onPressed: () => context.pop(),
-                              icon: const Icon(Icons.arrow_back,
-                                  color: Colors.white),
+                              icon: const Icon(
+                                Icons.arrow_back,
+                                color: Colors.white,
+                              ),
                             ),
                             const SizedBox(width: 4),
                             const Text(
@@ -337,10 +344,12 @@ class _SearchScreenState extends State<SearchScreen> {
                           ],
                         ),
                       ),
-                      // Search bar itself
+                      /// Search bar itself
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 12),
+                          horizontal: 16.0,
+                          vertical: 12,
+                        ),
                         child: Material(
                           elevation: 6,
                           shadowColor: Colors.black26,
@@ -352,15 +361,17 @@ class _SearchScreenState extends State<SearchScreen> {
                             textInputAction: TextInputAction.search,
                             decoration: InputDecoration(
                               hintText: 'Search properties, address , IDs...',
-                              hintStyle: TextStyle(
-                                color: Colors.grey[500],
+                              hintStyle: TextStyle(color: Colors.grey[500]),
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: Colors.deepPurple,
                               ),
-                              prefixIcon: const Icon(Icons.search,
-                                  color: Colors.deepPurple),
                               filled: true,
                               fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 14),
+                                horizontal: 20,
+                                vertical: 14,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
                                 borderSide: BorderSide.none,
@@ -376,7 +387,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
 
-          // Search results section
+          /// Search results section
           SliverPadding(
             padding: const EdgeInsets.all(16.0),
             sliver: BlocBuilder<SearchBloc, SearchState>(
@@ -396,14 +407,19 @@ class _SearchScreenState extends State<SearchScreen> {
                     itemBuilder: (context, index) {
                       final data = state.results[index];
                       final color = SearchUtils.statusColor(data.status);
-                      final priorityColor = SearchUtils.priorityColor(data.priority);
+                      final priorityColor = SearchUtils.priorityColor(
+                        data.priority,
+                      );
                       return GestureDetector(
-                        onTap: (){
+                        onTap: () {
                           final heroTag = 'search-${data.inspectionId}';
                           _openDetails(context, data, heroTag);
                         },
                         child: Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -421,43 +437,32 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: data.media.isNotEmpty
-                                      ? Image.network(
-                                    data.media.first.url,
-                                    height: 80,
-                                    width: 80,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Image.file(
-                                        File(data.media.first.toString()),
-                                        height: 80,
-                                        width: 80,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Container(
+                                SizedBox(
+                                  height: 80,
+                                  width: 80,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: data.media.isNotEmpty
+                                        ? ImageShowingUtils().buildMediaPreview(data.media.first.url)
+                                        : Container(
                                             height: 80,
                                             width: 80,
                                             color: Colors.grey.shade300,
-                                            child: const Icon(Icons.broken_image, color: Colors.redAccent, size: 36),
-                                          );
-                                        },
-                                      );
-                                    },
-                                  )
-                                      : Container(
-                                    height: 80,
-                                    width: 80,
-                                    color: Colors.grey.shade300,
-                                    child: const Icon(Icons.home, color: Colors.white70, size: 36),
+                                            child: const Icon(
+                                              Icons.home,
+                                              color: Colors.white70,
+                                              size: 36,
+                                            ),
+                                          ),
                                   ),
                                 ),
+
                                 const SizedBox(width: 12),
-                                // Details section
+                                /// Details section
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         data.propertyName,
@@ -480,14 +485,23 @@ class _SearchScreenState extends State<SearchScreen> {
                                       const SizedBox(height: 6),
                                       Row(
                                         children: [
-                                          SearchUtils.infoChip(data.inspectionType, Icons.assignment, Colors.blue.shade600),
+                                          SearchUtils.infoChip(
+                                            data.inspectionType,
+                                            Icons.assignment,
+                                            Colors.blue.shade600,
+                                          ),
                                           const SizedBox(width: 6),
-                                          SearchUtils.infoChip(data.priority, Icons.flag, priorityColor),
+                                          SearchUtils.infoChip(
+                                            data.priority,
+                                            Icons.flag,
+                                            priorityColor,
+                                          ),
                                         ],
                                       ),
                                       const SizedBox(height: 6),
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
                                             "Status: ${data.status}",
@@ -495,16 +509,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                               fontSize: 13,
                                               fontWeight: FontWeight.w600,
                                               color: color,
-                                            ),
-                                          ),
-                                          Text(
-                                            data.syncStatus,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: data.syncStatus == 'Synced'
-                                                  ? Colors.green
-                                                  : Colors.orange,
-                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         ],
@@ -532,15 +536,18 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: Center(child: Text('Error: ${state.message}')),
                   );
                 }
-                // Initial state
+                /// Initial state
                 return SliverToBoxAdapter(
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 60),
-                        Icon(Icons.search_rounded,
-                            size: 80, color: Colors.grey[400]),
+                        Icon(
+                          Icons.search_rounded,
+                          size: 80,
+                          color: Colors.grey[400],
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'Start typing to search',

@@ -18,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _userNameController = TextEditingController();
   final _userPasswordController = TextEditingController();
 
-  //prevent from the multiple navigation
+  /// prevent from the multiple navigation
   bool _hasNavigated = false;
 
   @override

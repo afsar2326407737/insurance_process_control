@@ -12,7 +12,7 @@ class SearchQueryChanged extends SearchEvent {
   List<Object?> get props => [query];
 }
 
-// filter
+/// filter
 class SearchFilterApplied extends SearchEvent {
   final String? status;
   final String? priority;

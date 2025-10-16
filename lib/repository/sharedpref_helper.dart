@@ -1,6 +1,6 @@
 
 
-//function to call the initialization of the json data
+/// function to run only once because the data should be stored at only once
 import 'dart:developer';
 
 import 'package:shared_preferences/shared_preferences.dart';

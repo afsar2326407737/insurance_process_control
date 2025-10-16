@@ -38,3 +38,12 @@ final class UserErrorState extends UserState{
   // TODO: implement props
   List<Object?> get props => throw UnimplementedError();
 }
+
+final class UserPasswordChangedState extends UserState {
+  String message;
+
+  UserPasswordChangedState(this.message);
+
+  @override
+  List<Object?> get props => throw UnimplementedError();
+}

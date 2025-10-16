@@ -4,14 +4,15 @@ class InputFields extends StatefulWidget {
   TextEditingController _controller;
   String _labeltext;
   bool isPassword;
-  InputFields(this._controller,this._labeltext,this.isPassword,{super.key});
+  bool? enabled = true;
+  InputFields(this._controller,this._labeltext,this.isPassword,{this.enabled , super.key});
 
   @override
   State<InputFields> createState() => _InputFieldsState();
 }
 
 class _InputFieldsState extends State<InputFields> {
-  // this field will enable when this is the password field
+  /// this field will enable when this is the password field
   late bool _showPassword = !widget.isPassword;
   @override
   void initState() {
@@ -21,14 +22,15 @@ class _InputFieldsState extends State<InputFields> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      enabled: widget.enabled,
       controller: widget._controller,
-      //hide the text like password
+      /// hide the text like password
       obscureText: !_showPassword,
       decoration: InputDecoration(
         labelText: widget._labeltext,
         labelStyle: Theme.of(context).textTheme.bodyMedium,
         hintStyle: Theme.of(context).textTheme.bodySmall,
-        // suffix icon when this is the password field
+        /// suffix icon when this is the password field
         suffixIcon: widget.isPassword ?? false ? IconButton(
           onPressed: () {
             setState(() {

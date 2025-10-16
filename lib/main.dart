@@ -9,12 +9,13 @@ import 'package:i_p_c/repository/couchbase_helper.dart';
 import 'package:i_p_c/repository/couchbase_services.dart';
 import 'package:i_p_c/repository/database_helper.dart';
 import 'package:i_p_c/repository/sharedpref_helper.dart';
+import 'package:i_p_c/screens/change_password.dart';
 import 'package:i_p_c/screens/new_inspection_screen.dart';
 import 'package:i_p_c/screens/profile_screen.dart';
 import 'package:i_p_c/screens/properties_home_screen.dart';
 import 'package:i_p_c/screens/login_screen.dart';
 import 'package:i_p_c/screens/properties_detail_screen.dart';
-import 'package:i_p_c/screens/report_upload_screen.dart';
+import 'package:i_p_c/screens/upload_report_screen.dart';
 import 'package:i_p_c/screens/search_screen.dart';
 import 'package:i_p_c/screens/settings_drawer.dart';
 import 'package:i_p_c/screens/signup_page.dart';
@@ -54,7 +55,8 @@ class MyApp extends StatelessWidget {
 
   late final GoRouter _router = GoRouter(
     initialLocation: initialLocation,
-    //used the switch statemet for the optimization
+
+    ///used the switch statemet for the optimization
     routes: [
       GoRoute(path: '/', builder: (context, state) => LoginScreen()),
       GoRoute(
@@ -63,7 +65,14 @@ class MyApp extends StatelessWidget {
           final page = state.pathParameters['page'] ?? '';
           switch (page) {
             case 'uploadreport':
-              return ReportUploadScreen();
+              final extra = state.extra as String;
+              final inspectionId = extra;
+              if (inspectionId.isEmpty) {
+                return const Scaffold(
+                  body: Center(child: Text('Missing inspection ID')),
+                );
+              }
+              return UploadReportScreen(insuranceId: inspectionId);
             case 'signup':
               return SignupPage();
             case 'home':
@@ -99,6 +108,15 @@ class MyApp extends StatelessWidget {
               );
             case 'newinspection':
               return NewInspectionScreen();
+            case 'changepassword':
+              final extra = state.extra as String?;
+              final empId = extra ?? '';
+              if (empId.isEmpty) {
+                return const Scaffold(
+                  body: Center(child: Text('Missing employee ID')),
+                );
+              }
+              return ChangePassword(empId: empId);
             default:
               return const Scaffold(
                 body: Center(child: Text('Page not found')),
@@ -113,6 +131,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     WidgetsFlutterBinding.ensureInitialized();
     return MaterialApp.router(
+
       title: 'IPC',
       debugShowCheckedModeBanner: false,
       theme: theme,

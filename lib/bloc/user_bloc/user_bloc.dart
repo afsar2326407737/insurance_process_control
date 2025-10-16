@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:i_p_c/model/user_model.dart';
@@ -10,15 +9,16 @@ part 'user_event.dart';
 part 'user_state.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
-  //static late User userDetails;
+  /// static late User userDetails;
 
   UserBloc() : super(UserInitial()) {
     on<UserSignUpEvent>(_userSignUpEvent);
     on<UserLoginEvent>(_userLoginEvent);
+    on<ChangePasswordEvent>(_changePasswordEvent);
   }
 
 
-  // sign up function call in the application
+  /// sign up function call in the application
   FutureOr<void> _userSignUpEvent(
       UserSignUpEvent event,
       Emitter<UserState> emit,
@@ -44,7 +44,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  // code for the user login state
+  /// code for the user login state
   FutureOr<void> _userLoginEvent(
     UserLoginEvent event,
     Emitter<UserState> emit,
@@ -53,7 +53,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       emit(UserLoadingState());
       final user = await DatabaseHelper().getUserByEmail(event.userEmail);
       if (user != null && user.password == event.userPassword) {
-        // save the state of the user details in the logged in
+        /// save the state of the user details in the logged in
         await DatabaseHelper().saveLoginState(user.email);
         emit(UserSuccessState('Logged In As ${user.role}', user));
       } else {
@@ -64,5 +64,22 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
+  FutureOr<void> _changePasswordEvent(ChangePasswordEvent event, Emitter<UserState> emit) async {
+    try {
+      emit(UserLoadingState());
+      final success = await DatabaseHelper().updateEmployeePassword(
+        empId: event.empId,
+        oldPassword: event.oldPassword,
+        newPassword: event.newPassword,
+      );
+      if (success) {
+        emit(UserPasswordChangedState('Password Changed Successfully'));
+      } else {
+        emit(UserErrorState('Invalid employee ID or old password'));
+      }
+    } catch (e) {
+      emit(UserErrorState('Error changing password: $e'));
+    }
+  }
 
 }

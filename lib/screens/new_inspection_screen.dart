@@ -2,11 +2,14 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:i_p_c/repository/couchbase_services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pinput/pinput.dart';
-
+import 'package:intl/intl.dart';
 import '../bloc/inspection_bloc/inspection_bloc.dart';
 import '../model/inspection_detailes_model.dart';
+import '../utils/image_cropper_helper.dart';
 import '../utils/scaffold_message_notifier.dart';
 
 class NewInspectionScreen extends StatefulWidget {
@@ -17,18 +20,15 @@ class NewInspectionScreen extends StatefulWidget {
 }
 
 class _NewInspectionScreenState extends State<NewInspectionScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final Map<String, String> _fields = {};
-
-  // Option selections
+  /// Option selections
   String? _inspectionType;
   String? _priority;
   final String _status = 'Pending';
 
-  // Stepper state
+  /// Stepper state
   int _currentStep = 0;
 
-  // Form fields
+  /// Form fields
   String? _inspectionId;
   String? _propertyName;
   String? _address;
@@ -36,6 +36,9 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
 
   DateTime? _assignedDate;
   DateTime? _dueDate;
+
+  /// verify button check
+  bool _isVerified = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -109,50 +112,6 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            SizedBox(
-                              width: 120,
-                              height: 45,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF8E2DE2),
-                                      Color(0xFF6A82FB),
-                                    ],
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ElevatedButton(
-                                  onPressed: _isStepComplete(_currentStep)
-                                      ? details.onStepContinue
-                                      : () {
-                                          MyScaffoldMessenger.scaffoldSuccessMessage(
-                                            context,
-                                            'Please fill all the fields before proceeding to the next',
-                                            Colors.red,
-                                          );
-                                        },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    "Next",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .copyWith(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
                             if (_currentStep > 0)
                               SizedBox(
                                 width: 120,
@@ -189,6 +148,65 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
                                   ),
                                 ),
                               ),
+                            const SizedBox(width: 10),
+                            BlocConsumer<InspectionBloc, InspectionState>(
+                              bloc: context.read<InspectionBloc>(),
+                              listener: (context, state) {
+                                if (state is InspectionLoaded) {
+                                  context.pop();
+                                }
+                              },
+                              builder: (context, state) {
+                                if (state is InspectionLoading) {
+                                  return const CircularProgressIndicator();
+                                }
+                                return SizedBox(
+                                  width: 120,
+                                  height: 45,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF8E2DE2),
+                                          Color(0xFF6A82FB),
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: ElevatedButton(
+                                      onPressed: _isStepComplete(_currentStep)
+                                          ? details.onStepContinue
+                                          : () {
+                                              MyScaffoldMessenger.scaffoldSuccessMessage(
+                                                context,
+                                                'Complete this step before proceeding',
+                                                Colors.red,
+                                              );
+                                            },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        _currentStep == 2 ? "Submit" : "Next",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium!
+                                            .copyWith(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ],
@@ -274,6 +292,45 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
     );
   }
 
+  Future<void> _verifyInspectionId() async {
+    if (_inspectionId == null || _inspectionId!.isEmpty) {
+      MyScaffoldMessenger.scaffoldSuccessMessage(
+        context,
+        'Please enter Inspection ID before verifying',
+        Colors.red,
+      );
+      return;
+    }
+    CouchbaseServices()
+        .doesInspectionIdExist(_inspectionId!)
+        .then((exists) {
+          ;
+          if (exists) {
+            MyScaffoldMessenger.scaffoldSuccessMessage(
+              context,
+              'Inspection ID already exists. Please enter a unique ID.',
+              Colors.red,
+            );
+          } else {
+            setState(() {
+              _isVerified = true;
+            });
+            MyScaffoldMessenger.scaffoldSuccessMessage(
+              context,
+              'Inspection ID is valid and unique.',
+              Colors.green,
+            );
+          }
+        })
+        .catchError((error) {
+          MyScaffoldMessenger.scaffoldSuccessMessage(
+            context,
+            'Error verifying Inspection ID. Please try again.',
+            Colors.red,
+          );
+        });
+  }
+
   void _submitForm() {
     if (!_isStepComplete(0) || !_isStepComplete(1) || !_isStepComplete(2)) {
       MyScaffoldMessenger.scaffoldSuccessMessage(
@@ -284,7 +341,15 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
       return;
     }
 
-    // Create Inspection object (adjust fields as per your model)
+    final formattedAssignedDate = DateFormat(
+      'yyyy-MM-dd',
+    ).format(_assignedDate!);
+    final formattedDueDate = DateFormat('yyyy-MM-dd').format(_dueDate!);
+    final formattedLastUpdated = DateFormat(
+      'yyyy-MM-dd',
+    ).format(DateTime.now());
+
+    /// Create Inspection object (adjust fields as per your model)
     final inspection = Inspection(
       inspectionId: _inspectionId!,
       propertyName: _propertyName!,
@@ -292,14 +357,14 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
       inspectionType: _inspectionType!,
       priority: _priority!,
       status: _status,
-      assignedDate: _assignedDate!.toString(),
-      dueDate: _dueDate!.toString(),
-      lastUpdated: DateTime.now().toString(),
+      assignedDate: formattedAssignedDate,
+      dueDate: formattedDueDate,
+      lastUpdated: formattedLastUpdated,
       syncStatus: 'Not Synced',
       media: _images.map((f) => Media(type: 'image', url: f.path)).toList(),
     );
 
-    // Dispatch event to bloc
+    /// Dispatch event to bloc
     context.read<InspectionBloc>().add(AddInspection(inspection));
   }
 
@@ -341,23 +406,47 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         const SizedBox(height: 8),
-        Pinput(
-          length: 6,
-          keyboardType: TextInputType.number,
-          onCompleted: (value) => _inspectionId = value,
-          defaultPinTheme: PinTheme(
-            width: 50,
-            height: 56,
-            textStyle: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+        Row(
+          children: [
+            Expanded(
+              child: Pinput(
+                length: 6,
+                keyboardType: TextInputType.text,
+                onCompleted: (value) => setState(() => _inspectionId = value),
+                defaultPinTheme: PinTheme(
+                  width: 50,
+                  height: 56,
+                  textStyle: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F6FA),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                ),
+              ),
             ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F6FA),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade400),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: _verifyInspectionId,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isVerified ? Colors.green : Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
+              ),
+              child: Text(
+                _isVerified ? 'Verified' : 'Verify',
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
@@ -375,7 +464,6 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Dart
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -409,15 +497,18 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
           ],
         ),
         const SizedBox(height: 8),
+
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _images
+              .asMap()
+              .entries
               .map(
-                (file) => Stack(
+                (entry) => Stack(
                   children: [
                     Image.file(
-                      file,
+                      entry.value,
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
@@ -425,17 +516,48 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
                     Positioned(
                       right: 0,
                       top: 0,
-                      child: GestureDetector(
-                        onTap: () => setState(() => _images.remove(file)),
-                        child: const CircleAvatar(
-                          radius: 12,
-                          backgroundColor: Colors.red,
-                          child: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: Colors.white,
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final cropped =
+                                  await ImageCropperHelper.cropImage(
+                                    imageFile: entry.value,
+                                    title: 'Edit Image',
+                                  );
+                              if (cropped != null) {
+                                setState(() {
+                                  _images[entry.key] = cropped;
+                                });
+                              } else {
+                                print('Edit button was clicked');
+                              }
+                            },
+                            child: const CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.blue,
+                              child: Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () =>
+                                setState(() => _images.remove(entry.value)),
+                            child: const CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.red,
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -456,7 +578,7 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
             leading: const Icon(Icons.camera_alt),
             title: const Text('Camera'),
             onTap: () {
-              Navigator.pop(context);
+              context.pop();
               _pickImage(ImageSource.camera);
             },
           ),
@@ -464,7 +586,7 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
             leading: const Icon(Icons.photo_library),
             title: const Text('Gallery'),
             onTap: () {
-              Navigator.pop(context);
+              context.pop();
               _pickImage(ImageSource.gallery);
             },
           ),
@@ -487,12 +609,13 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
     }
   }
 
-  // for the validation
-  // Add this method inside your _NewInspectionScreenState class
+  /// for the validation
+  /// Add this method inside your _NewInspectionScreenState class
   bool _isStepComplete(int step) {
     switch (step) {
       case 0:
-        return _inspectionId != null &&
+        return _isVerified &&
+            _inspectionId != null &&
             _propertyName != null &&
             _propertyName!.isNotEmpty &&
             _address != null &&

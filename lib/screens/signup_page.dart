@@ -1,12 +1,17 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:i_p_c/bloc/user_bloc/user_bloc.dart';
 import 'package:i_p_c/components/colors.dart';
+import 'package:i_p_c/utils/button_fun.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pinput/pinput.dart';
 import '../model/user_model.dart';
+import '../repository/database_helper.dart';
+import '../utils/image_cropper_helper.dart' show ImageCropperHelper;
 import '../utils/input_fields.dart';
 import '../utils/scaffold_message_notifier.dart';
 
@@ -18,24 +23,26 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  // controllers
+  /// controllers
   final _userNameController = TextEditingController();
   final _userEmailController = TextEditingController();
   final _userBranchController = TextEditingController();
-  final _userEmpIdController = TextEditingController();
+  String? _userEmpId;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  String? _role; // role selected
+  String? _role;
   File? _pickedFile;
 
-  // instance of the user bloc
   var _userBloc = UserBloc();
 
-  // bottom bar to pick the photo or image from the phone
+  /// validation of the empid
+  bool isValidEmpid = false;
+
+  /// bottom bar to pick the photo or image from the phone
   Future<void> _pickFileOrCamera() async {
     showModalBottomSheet(
       context: context,
@@ -50,7 +57,7 @@ class _SignupPageState extends State<SignupPage> {
                 leading: const Icon(Icons.camera_alt),
                 title: const Text("Take a photo"),
                 onTap: () async {
-                  Navigator.pop(context);
+                  context.pop();
                   final picker = ImagePicker();
                   final picked = await picker.pickImage(
                     source: ImageSource.camera,
@@ -64,7 +71,7 @@ class _SignupPageState extends State<SignupPage> {
                 leading: const Icon(Icons.photo_library),
                 title: const Text("Choose from gallery"),
                 onTap: () async {
-                  Navigator.pop(context);
+                  context.pop();
                   final picker = ImagePicker();
                   final picked = await picker.pickImage(
                     source: ImageSource.gallery,
@@ -81,8 +88,80 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  void _nextPage() {
-    if (_currentPage < 4) {
+  ///employee id field
+  Widget _buildEmpIdField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Employee ID',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        ),
+        const SizedBox(height: 8),
+        Pinput(
+          length: 6,
+          keyboardType: TextInputType.text,
+          onCompleted: (value) => _userEmpId = value,
+          defaultPinTheme: PinTheme(
+            width: 50,
+            height: 56,
+            textStyle: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F6FA),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade400),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _nextPage() async {
+    if (_currentPage == 0) {
+      if (_userEmpId == null || _userEmpId!.isEmpty || _userEmpId!.length < 6) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Please enter a valid Employee ID"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      final empIdExists = await DatabaseHelper().doesEmpIdExist(_userEmpId!);
+      log('empIdExists: $empIdExists');
+      if (empIdExists) {
+        setState(() {
+          isValidEmpid = false;
+        });
+
+        /// Show alert dialog
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Employee ID already exists"),
+            content: const Text("Please use a different Employee ID."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+        return;
+      } else {
+        print('catched on the else');
+        setState(() {
+          isValidEmpid = true;
+        });
+      }
+    }
+
+    if (_currentPage < 4 && isValidEmpid) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -111,7 +190,7 @@ class _SignupPageState extends State<SignupPage> {
     _userBloc.add(
       UserSignUpEvent(
         User(
-          empId: _userEmpIdController.text,
+          empId: _userEmpId!,
           name: _userNameController.text,
           email: _userEmailController.text,
           branch: _userBranchController.text,
@@ -159,7 +238,7 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                 ),
                 Container(
-                  height: MediaQuery.of(context).size.height * 0.45,
+                  height: MediaQuery.of(context).size.height * 0.47,
                   width: MediaQuery.of(context).size.width * 0.9,
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -175,12 +254,8 @@ class _SignupPageState extends State<SignupPage> {
                           children: [
                             Column(
                               children: [
-                                const SizedBox(height: 20),
-                                InputFields(
-                                  _userEmpIdController,
-                                  'Enter the Employee Id',
-                                  false,
-                                ),
+                                const SizedBox(height: 10),
+                                _buildEmpIdField(),
                                 const SizedBox(height: 20),
                                 InputFields(
                                   _userNameController,
@@ -195,7 +270,8 @@ class _SignupPageState extends State<SignupPage> {
                                 ),
                               ],
                             ),
-                            // Step 2 → Branch
+
+                            /// Step 2 → Branch
                             SingleChildScrollView(
                               child: Column(
                                 children: [
@@ -205,7 +281,7 @@ class _SignupPageState extends State<SignupPage> {
                                     'Enter the Branch',
                                     false,
                                   ),
-                                  const SizedBox(height: 30),
+                                  const SizedBox(height: 50),
                                   Text(
                                     "Select Role",
                                     style: Theme.of(
@@ -254,7 +330,8 @@ class _SignupPageState extends State<SignupPage> {
                                 ],
                               ),
                             ),
-                            // Step 3 → File picker
+
+                            // Inside your Step 3 → File picker widget
                             SingleChildScrollView(
                               child: Column(
                                 children: [
@@ -285,15 +362,33 @@ class _SignupPageState extends State<SignupPage> {
                                           ),
                                   ),
                                   const SizedBox(height: 20),
-                                  ElevatedButton(
-                                    onPressed: _pickFileOrCamera,
-                                    child: const Text("Pick File / Camera"),
+                                  ButtonsFun(
+                                    _pickFileOrCamera,
+                                    "Pick File / Camera",
                                   ),
+                                  const SizedBox(height: 10),
+                                  if (_pickedFile != null)
+                                    ButtonsFun(() async {
+                                      final cropped =
+                                          await ImageCropperHelper.cropImage(
+                                            imageFile: _pickedFile!,
+                                            title: 'Edit Image',
+                                          );
+                                      if (cropped != null) {
+                                        setState(() {
+                                          _pickedFile = cropped;
+                                        });
+                                      } else {
+                                        print('Edit button was clicked');
+                                      }
+                                    }, "Edit"),
+
                                   const SizedBox(height: 20),
                                 ],
                               ),
                             ),
-                            // Step 4 → password creation
+
+                            /// Step 4 → password creation
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

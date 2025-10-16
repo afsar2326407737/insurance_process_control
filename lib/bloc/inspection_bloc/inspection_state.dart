@@ -58,3 +58,12 @@ class InspectionError extends InspectionState {
   @override
   List<Object?> get props => [message];
 }
+
+class InspReportSubSuccessState extends InspectionState {
+  final String inspectionId;
+
+  const InspReportSubSuccessState(this.inspectionId);
+
+  @override
+  List<Object?> get props => [inspectionId];
+}

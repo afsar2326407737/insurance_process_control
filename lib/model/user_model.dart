@@ -22,7 +22,7 @@ class User extends Equatable {
   @override
   List<Object?> get props => [empId, name, email, branch, role, password, filePath];
 
-  // helper for debugging
+  /// helper for debugging
   @override
   String toString() {
     return 'User(empId: $empId, name: $name, email: $email, branch: $branch, role: $role, file: $filePath)';

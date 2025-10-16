@@ -1,7 +1,11 @@
+import 'dart:developer';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:i_p_c/bloc/inspection_bloc/inspection_bloc.dart';
 import '../model/inspection_detailes_model.dart';
-import '../screens/properties_detail_screen.dart';
 
 class DetailsContainer extends StatefulWidget {
   final Inspection inspection;
@@ -79,12 +83,35 @@ class _DetailsContainerState extends State<DetailsContainer> {
             ),
           ),
           if (widget.isManager)
-            IconButton(
+            PopupMenuButton<String>(
               icon: const Icon(Icons.more_horiz),
-              onPressed: () {
-                print('More options tapped');
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color: Colors.white,
+              elevation: 4,
+              onSelected: (value) {
+                if (value == 'delete') {
+                  context.read<InspectionBloc>().add(
+                    DeleteInspectionEvent(widget.inspection.inspectionId),
+                  );
+                }
               },
-            ),
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: const [
+                      Icon(Icons.delete, color: Colors.redAccent),
+                      SizedBox(width: 8),
+                      Text('Delete'),
+                    ],
+                  ),
+                ),
+              ],
+            )
+
+
         ],
       ),
     );
@@ -94,31 +121,47 @@ class _DetailsContainerState extends State<DetailsContainer> {
     final hasMedia = _media.isNotEmpty && _media.first.url.isNotEmpty;
 
     Widget imageAt(int index) {
-      final url = _media[index].url;
+      final mediaItem = _media[index];
+      final url = mediaItem.url;
+
       return Hero(
         tag: _heroTag,
         child: Stack(
           children: [
             Positioned.fill(
-              child: Image.network(
-                url,
-                fit: BoxFit.cover,
-                loadingBuilder: (c, w, p) => p == null
-                    ? w
-                    : const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
+              child: url.startsWith('http') || url.startsWith('https')
+                  ? Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) =>
+                          progress == null
+                          ? child
+                          : const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey.shade200,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
                       ),
-                //image error handling
-                errorBuilder: (c, e, s) => Container(
-                  color: Colors.grey.shade200,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.broken_image_outlined,
-                    size: 48,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
+                    )
+                  : Image.file(
+                      File(url),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey.shade200,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
             ),
             Positioned(
               left: 0,
@@ -296,7 +339,8 @@ class _DetailsContainerState extends State<DetailsContainer> {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          if (widget.inspection.status.toLowerCase() != "completed") {
+          if (widget.inspection.status.toLowerCase() != "completed" ||
+              widget.isManager == true) {
             _openDetails();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(

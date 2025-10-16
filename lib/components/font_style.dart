@@ -6,25 +6,25 @@ final appTextTheme = TextTheme(
     fontSize: 32,
     fontWeight: FontWeight.bold,
     color: Colors.black,
-  ), // Headlines (e.g. app bar title)
+  ), /// Headlines (e.g. app bar title)
 
   titleMedium: GoogleFonts.poppins(
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: Colors.black87,
-  ), // Section titles
+  ), /// Section titles
 
   bodyLarge: GoogleFonts.poppins(
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: Colors.black87,
-  ), // Main body text
+  ), /// Main body text
 
   bodyMedium: GoogleFonts.poppins(
     fontSize: 14,
     fontWeight: FontWeight.normal,
     color: Colors.black54,
-  ), // Secondary body text
+  ), /// Secondary body text
 
   labelLarge: GoogleFonts.poppins(
     fontSize: 14,
@@ -41,5 +41,5 @@ final appTextTheme = TextTheme(
 
 final theme = ThemeData(
   textTheme: appTextTheme,
-  primarySwatch: Colors.blue,
+  primarySwatch: Colors.deepPurple,
 );

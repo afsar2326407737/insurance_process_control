@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 class Inspection {
   final String inspectionId;
@@ -12,6 +13,7 @@ class Inspection {
   final String lastUpdated;
   final String syncStatus;
   final List<Media> media;
+  final CompletionStatus? completionStatus;
 
   Inspection({
     required this.inspectionId,
@@ -25,6 +27,7 @@ class Inspection {
     required this.lastUpdated,
     required this.syncStatus,
     required this.media,
+    this.completionStatus,
   });
 
   factory Inspection.fromJson(Map<String, dynamic> json) {
@@ -42,6 +45,9 @@ class Inspection {
       media: json['media'] != null
           ? List<Media>.from(json['media'].map((item) => Media.fromJson(item)))
           : [],
+      completionStatus: json['completion_status'] != null
+          ? CompletionStatus.fromJson(json['completion_status'])
+          : null,
     );
   }
 
@@ -83,4 +89,38 @@ class Media {
   Map<String, dynamic> toMap() {
     return {'type': type, 'url': url};
   }
+}
+
+class CompletionStatus {
+  final String? employeeId;
+  final Uint8List? signature;
+  final String? createdAt;
+  final List<String>? proofMedia;
+
+  CompletionStatus({
+    this.employeeId,
+    this.signature,
+    this.createdAt,
+    this.proofMedia,
+  });
+
+  factory CompletionStatus.fromJson(Map<String, dynamic> json) {
+    return CompletionStatus(
+      employeeId: json['employee_id'],
+      signature: json['signature'] != null
+          ? Uint8List.fromList(List<int>.from(json['signature']))
+          : null,
+      createdAt: json['created_at'],
+      proofMedia: json['proof_media'] != null
+          ? List<String>.from(json['proof_media'].map((e) => e.toString()))
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+    if (employeeId != null) 'employee_id': employeeId,
+    if (proofMedia != null) 'proof_media': proofMedia,
+    if (signature != null) 'signature': signature!.toList(),
+    if (createdAt != null) 'created_at': createdAt,
+  };
 }

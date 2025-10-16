@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // testing the data
+  /// testing the data
   int _countNewPolicies(List<Inspection> list) {
     return list
         .where((i) => i.inspectionType.toLowerCase() == 'new policy')
@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return list.where((i) => i.priority.toLowerCase() == 'high').length;
   }
 
-  // settings details fetching
+  /// settings details fetching
   Future<User?> getLoggedInUser() async {
     loggedInUser = (await DatabaseHelper().getLoggedInUserEmail() != null)
         ? await DatabaseHelper().getUserByEmail(
@@ -275,17 +275,24 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: (loggedInUser?.role.toLowerCase() == 'manager')
-          ? FloatingActionButton(
+      floatingActionButton: FutureBuilder<User?>(
+        future: getLoggedInUser(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
+          if (snapshot.hasData &&
+              snapshot.data!.role.toLowerCase() == 'manager') {
+            return FloatingActionButton(
               onPressed: () async {
-                //context.push('/newinspection');
-                final data = await CouchbaseServices().getAllInspections();
-                log('Total Inspections: ${data.length}', name: 'Couchbase');
-                //log(await CouchbaseServices().printMetaResult().toString(), name: 'Couchbase');
+                context.push('/newinspection');
               },
               child: Icon(Icons.add),
-            )
-          : null,
+            );
+          }
+          return SizedBox.shrink();
+        },
+      ),
     );
   }
 }

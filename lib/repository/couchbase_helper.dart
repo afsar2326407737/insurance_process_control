@@ -4,7 +4,6 @@ class CouchbaseHelper {
   static Database? _db;
 
   Future<Database> initCouchbase() async {
-    // Remove CouchbaseLiteFlutter.init() from here
     _db ??= await Database.openAsync('inspections_db');
     return _db!;
   }

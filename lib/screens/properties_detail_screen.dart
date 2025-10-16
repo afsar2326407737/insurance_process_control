@@ -1,7 +1,12 @@
-// dart
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:i_p_c/utils/button_fun.dart';
+import 'package:i_p_c/utils/image_dialog.dart';
+import 'package:i_p_c/utils/report_dialogbox.dart';
 import '../model/inspection_detailes_model.dart';
+import '../utils/image_showing_utils.dart';
 import '../utils/info_row.dart';
 
 class InspectionDetailsScreen extends StatelessWidget {
@@ -17,54 +22,6 @@ class InspectionDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final media = inspection.media;
-    final headerUrl = media.isNotEmpty ? media.first.url : '';
-
-    // to set the image with the animation
-    Widget headerImage() {
-      final image = headerUrl.isNotEmpty
-          ? Image.network(
-              headerUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (c, e, s) => Container(
-                color: Colors.grey.shade200,
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.broken_image_outlined,
-                  size: 48,
-                  color: Colors.grey,
-                ),
-              ),
-            )
-          : Container(
-              color: Colors.grey.shade100,
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.photo_outlined,
-                size: 64,
-                color: Colors.grey,
-              ),
-            );
-
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          Hero(tag: heroTag, child: image),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment(0, .6),
-                    end: Alignment(0, 1.0),
-                    colors: [Colors.transparent, Colors.black26],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
 
     return Scaffold(
       body: CustomScrollView(
@@ -73,6 +30,24 @@ class InspectionDetailsScreen extends StatelessWidget {
         ),
         slivers: [
           SliverAppBar(
+            iconTheme: const IconThemeData(color: Colors.white),
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: BackButton(
+                color: Colors.black, // Icon color
+              ),
+            ),
             pinned: true,
             stretch: true,
             expandedHeight: 300,
@@ -96,7 +71,9 @@ class InspectionDetailsScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  headerImage(),
+                  ImageShowingUtils().buildMediaPreview(
+                    inspection.media.first.url,
+                  ),
                   Positioned(
                     bottom: 0,
                     left: 0,
@@ -126,7 +103,6 @@ class InspectionDetailsScreen extends StatelessWidget {
             ),
           ),
 
-          // Property + address
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -210,7 +186,7 @@ class InspectionDetailsScreen extends StatelessWidget {
             ),
           ),
 
-          // Media grid (SliverGrid)
+          /// Media grid (SliverGrid)
           if (media.isNotEmpty)
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -220,17 +196,14 @@ class InspectionDetailsScreen extends StatelessWidget {
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: m.url.isNotEmpty
-                        ? Image.network(
-                            m.url,
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, e, s) => Container(
-                              color: Colors.grey.shade200,
-                              alignment: Alignment.center,
-                              child: const Icon(
-                                Icons.broken_image_outlined,
-                                color: Colors.grey,
-                              ),
-                            ),
+                        ? GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => ImageDialog(imageUrl: m.url),
+                              );
+                            },
+                            child: ImageShowingUtils().buildMediaPreview(m.url),
                           )
                         : Container(
                             color: Colors.grey.shade100,
@@ -250,18 +223,27 @@ class InspectionDetailsScreen extends StatelessWidget {
                 ),
               ),
             ),
-          SliverToBoxAdapter(
-
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Center(
-                child: ButtonsFun((){
-                  print('Take Button Was Handled');
-                }),
-              ),
-            ),
-          )
         ],
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: inspection.completionStatus != null
+            ? ButtonsFun(() {
+                showDialog(
+                  context: context,
+                  builder: (context) => ReportDialog(
+                    employeeId: inspection.completionStatus?.employeeId ?? '',
+                    createdAt: inspection.completionStatus?.createdAt ?? '',
+                    mediaPaths:
+                        inspection.completionStatus?.proofMedia ?? const [],
+                    signature:
+                        inspection.completionStatus?.signature ?? Uint8List(0),
+                  ),
+                );
+              }, 'View Report')
+            : ButtonsFun(() {
+                context.push('/uploadreport', extra: inspection.inspectionId);
+              }, 'Take'),
       ),
     );
   }
