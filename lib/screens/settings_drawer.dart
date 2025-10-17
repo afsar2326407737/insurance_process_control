@@ -88,7 +88,9 @@ class SettingsDrawer extends StatelessWidget {
                   _buildSettingsItem(
                     icon: Icons.help_outline,
                     title: "Help & Support",
-                    onTap: () {},
+                    onTap: () {
+                      context.push('/helpandsupport' , extra: user.empId );
+                    },
                   ),
                   const Divider(),
                   _buildSettingsItem(

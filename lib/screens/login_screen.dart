@@ -85,14 +85,37 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       InputFields(
                         _userNameController,
-                        'Enter the user Name',
+                        'Enter the username or Email',
                         false,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!RegExp(
+                            r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(value)) {
+                            return 'Enter a valid email';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 20),
                       InputFields(
                         _userPasswordController,
                         'Enter the password',
                         true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Password is required';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                            return 'Password must contain at least one special character';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 32),
                       SizedBox(
@@ -128,9 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   // }
                                   if (!_hasNavigated) {
                                     _hasNavigated = true;
-                                    GoRouter.of(context).go(
-                                      '/home',
-                                    );
+                                    GoRouter.of(context).go('/home');
                                   }
                                 }
                               },
@@ -151,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
-                                  onPressed: () async{
+                                  onPressed: () async {
                                     BlocProvider.of<UserBloc>(context).add(
                                       UserLoginEvent(
                                         _userNameController.text.trim(),

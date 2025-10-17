@@ -7,6 +7,7 @@ import 'package:i_p_c/repository/couchbase_helper.dart';
 
 import '../model/inspection_detailes_model.dart';
 import '../model/page_inspection_model.dart';
+import '../model/support_request_model.dart';
 
 class CouchbaseServices {
   /// store the value in the database
@@ -389,29 +390,34 @@ class CouchbaseServices {
 
   ///to check the inspection id exist or not
   Future<bool> doesInspectionIdExist(String inspectionId) async {
-    try{
+    try {
       final db = CouchbaseHelper.db;
 
       final query = const QueryBuilder()
           .select(SelectResult.expression(Meta.id))
           .from(DataSource.database(db))
           .where(
-        Expression.property('type')
-            .equalTo(Expression.string('inspection'))
-            .and(
-          Expression.property(
-            'inspection_id',
-          ).equalTo(Expression.string(inspectionId)),
-        ),
-      );
+            Expression.property('type')
+                .equalTo(Expression.string('inspection'))
+                .and(
+                  Expression.property(
+                    'inspection_id',
+                  ).equalTo(Expression.string(inspectionId)),
+                ),
+          );
 
       final resultSet = await query.execute();
       final results = await resultSet.allResults();
-
+      log(
+        'Inspection ID $inspectionId exists: ${results.isNotEmpty}',
+        name: 'CouchbaseServices',
+      );
       return results.isNotEmpty;
-    }
-    catch(e){
-      log('Error checking inspection ID existence: $e', name: 'CouchbaseServices');
+    } catch (e) {
+      log(
+        'Error checking inspection ID existence: $e',
+        name: 'CouchbaseServices',
+      );
       return false;
     }
   }
@@ -425,19 +431,23 @@ class CouchbaseServices {
           .select(SelectResult.expression(Meta.id))
           .from(DataSource.database(db))
           .where(
-        Expression.property('type')
-            .equalTo(Expression.string('inspection'))
-            .and(
-          Expression.property('inspection_id')
-              .equalTo(Expression.string(inspectionId)),
-        ),
-      );
+            Expression.property('type')
+                .equalTo(Expression.string('inspection'))
+                .and(
+                  Expression.property(
+                    'inspection_id',
+                  ).equalTo(Expression.string(inspectionId)),
+                ),
+          );
 
       final resultSet = await query.execute();
       final results = await resultSet.allResults();
 
       if (results.isEmpty) {
-        log('No inspection found with ID: $inspectionId', name: 'CouchbaseServices');
+        log(
+          'No inspection found with ID: $inspectionId',
+          name: 'CouchbaseServices',
+        );
         return null;
       }
 
@@ -447,10 +457,16 @@ class CouchbaseServices {
 
       if (doc != null) {
         await db.deleteDocument(doc);
-        log('Inspection with ID $inspectionId deleted successfully.', name: 'CouchbaseServices');
+        log(
+          'Inspection with ID $inspectionId deleted successfully.',
+          name: 'CouchbaseServices',
+        );
         return inspectionId;
       } else {
-        log('Document not found in DB for ID: $inspectionId', name: 'CouchbaseServices');
+        log(
+          'Document not found in DB for ID: $inspectionId',
+          name: 'CouchbaseServices',
+        );
         return null;
       }
     } catch (e) {
@@ -459,4 +475,110 @@ class CouchbaseServices {
     }
   }
 
+  Future<int> countNewPolicyInspections() async {
+    try {
+      final db = CouchbaseHelper.db;
+      final buffer = StringBuffer('''
+      SELECT COUNT(*) AS totalCount
+      FROM ${db.name}
+      WHERE type = 'inspection'
+        AND inspection_type = 'New Policy'
+    ''');
+
+      final query = await db.createQuery(buffer.toString());
+      final resultSet = await query.execute();
+      final results = await resultSet.allResults();
+
+      if (results.isNotEmpty) {
+        final count = results.first.toPlainMap()['totalCount'] as int? ?? 0;
+        log('Total New Policy inspections: $count', name: 'CouchbaseServices');
+        return count;
+      }
+    } catch (e, st) {
+      log('Error counting inspections: $e', name: 'CouchbaseServices');
+      log(st.toString(), name: 'StackTrace');
+    }
+
+    return 0;
+  }
+
+  Future<int> countHighPriorityInspections() async {
+    try {
+      final db = CouchbaseHelper.db;
+
+      final buffer = StringBuffer('''
+      SELECT COUNT(*) AS totalCount
+      FROM ${db.name}
+      WHERE type = 'inspection'
+        AND priority = 'High'
+    ''');
+
+      final query = await db.createQuery(buffer.toString());
+      final resultSet = await query.execute();
+      final results = await resultSet.allResults();
+
+      if (results.isNotEmpty) {
+        final count = results.first.toPlainMap()['totalCount'] as int? ?? 0;
+
+        return count;
+      }
+    } catch (e, st) {
+      log('Error counting inspections: $e', name: 'CouchbaseServices');
+      log(st.toString(), name: 'StackTrace');
+    }
+    return 0;
+  }
+
+  /// store the inspection support request
+  Future<bool> storeSupportReport(String employeeId, String message) async {
+    try {
+      final db = CouchbaseHelper.db;
+      final doc = MutableDocument({
+        'type': 'support_request',
+        'employee_id': employeeId,
+        'message': message,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+      await db.saveDocument(doc);
+      log('Message stored successfully for employee: $employeeId');
+      return true;
+    } catch (e) {
+      log('Error storing message: $e');
+      return false;
+    }
+  }
+
+  /// get all the support requests
+  Future<List<SupportRequest>> getAllSupportRequests() async {
+    try {
+      final db = CouchbaseHelper.db;
+
+      final buffer = StringBuffer('''
+        SELECT employee_id,
+               message,
+               timestamp
+        FROM ${db.name}
+        WHERE type = 'support_request'
+        ORDER BY timestamp DESC
+      ''');
+
+      final query = await db.createQuery(buffer.toString());
+      final resultSet = await query.execute();
+      final results = await resultSet.allResults();
+
+      final requests = results.map((result) {
+        final map = result.toPlainMap();
+        return SupportRequest.fromMap(map);
+      }).toList();
+
+      log(
+        '✅ Retrieved ${requests.length} support requests',
+        name: 'SupportRepository',
+      );
+      return requests;
+    } catch (e) {
+      log('❌ Error fetching support requests: $e', name: 'SupportRepository');
+      return [];
+    }
+  }
 }

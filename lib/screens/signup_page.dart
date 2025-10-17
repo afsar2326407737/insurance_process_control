@@ -23,6 +23,8 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   /// controllers
   final _userNameController = TextEditingController();
   final _userEmailController = TextEditingController();
@@ -161,6 +163,10 @@ class _SignupPageState extends State<SignupPage> {
       }
     }
 
+    if (!(_formKey.currentState?.validate() ?? true)) {
+      return;
+    }
+
     if (_currentPage < 4 && isValidEmpid) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -181,6 +187,8 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   void _submitForm() {
+    if (!(_formKey.currentState?.validate() ?? true)) return;
+
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(
         context,
@@ -248,172 +256,196 @@ class _SignupPageState extends State<SignupPage> {
                   child: Column(
                     children: [
                       Expanded(
-                        child: PageView(
-                          controller: _pageController,
-                          physics: const NeverScrollableScrollPhysics(),
-                          children: [
-                            Column(
-                              children: [
-                                const SizedBox(height: 10),
-                                _buildEmpIdField(),
-                                const SizedBox(height: 20),
-                                InputFields(
-                                  _userNameController,
-                                  'Enter the User Name',
-                                  false,
-                                ),
-                                const SizedBox(height: 20),
-                                InputFields(
-                                  _userEmailController,
-                                  'Enter the Email',
-                                  false,
-                                ),
-                              ],
-                            ),
-
-                            /// Step 2 → Branch
-                            SingleChildScrollView(
-                              child: Column(
+                        child: Form(
+                          key: _formKey,
+                          child: PageView(
+                            controller: _pageController,
+                            physics: const NeverScrollableScrollPhysics(),
+                            children: [
+                              Column(
                                 children: [
+                                  const SizedBox(height: 10),
+                                  _buildEmpIdField(),
                                   const SizedBox(height: 20),
                                   InputFields(
-                                    _userBranchController,
-                                    'Enter the Branch',
+                                    _userNameController,
+                                    'Enter the User Name',
                                     false,
                                   ),
-                                  const SizedBox(height: 50),
-                                  Text(
-                                    "Select Role",
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: RadioListTile<String>(
-                                          title: Text(
-                                            "Manager",
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium,
-                                          ),
-                                          value: "Manager",
-                                          groupValue: _role,
-                                          onChanged: (String? val) {
-                                            setState(() {
-                                              _role = val;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: RadioListTile<String>(
-                                          title: Text(
-                                            "Inspector",
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium,
-                                          ),
-                                          value: "Inspector",
-                                          groupValue: _role,
-                                          onChanged: (String? val) {
-                                            setState(() {
-                                              _role = val;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ],
+                                  const SizedBox(height: 20),
+                                  InputFields(
+                                    _userEmailController,
+                                    'Enter the Email',
+                                    false,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Email is required';
+                                      }
+                                      if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                        return 'Enter a valid email';
+                                      }
+                                      return null;
+                                    },
                                   ),
                                 ],
                               ),
-                            ),
 
-                            // Inside your Step 3 → File picker widget
-                            SingleChildScrollView(
-                              child: Column(
+                              /// Step 2 → Branch
+                              SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    const SizedBox(height: 20),
+                                    InputFields(
+                                      _userBranchController,
+                                      'Enter the Branch',
+                                      false,
+                                    ),
+                                    const SizedBox(height: 50),
+                                    Text(
+                                      "Select Role",
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: RadioListTile<String>(
+                                            title: Text(
+                                              "Manager",
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium,
+                                            ),
+                                            value: "Manager",
+                                            groupValue: _role,
+                                            onChanged: (String? val) {
+                                              setState(() {
+                                                _role = val;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: RadioListTile<String>(
+                                            title: Text(
+                                              "Inspector",
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium,
+                                            ),
+                                            value: "Inspector",
+                                            groupValue: _role,
+                                            onChanged: (String? val) {
+                                              setState(() {
+                                                _role = val;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Inside your Step 3 → File picker widget
+                              SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    const SizedBox(height: 20),
+                                    AnimatedContainer(
+                                      duration: const Duration(seconds: 1),
+                                      curve: Curves.easeInOut,
+                                      width: _pickedFile != null ? 200 : 120,
+                                      height: _pickedFile != null ? 200 : 120,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: _pickedFile != null
+                                          ? ClipRRect(
+                                              borderRadius: BorderRadius.circular(
+                                                12,
+                                              ),
+                                              child: Image.file(
+                                                _pickedFile!,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.note_add_outlined,
+                                              size: 50,
+                                              color: Colors.black54,
+                                            ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    ButtonsFun(
+                                      _pickFileOrCamera,
+                                      "Pick File / Camera",
+                                    ),
+                                    const SizedBox(height: 10),
+                                    if (_pickedFile != null)
+                                      ButtonsFun(() async {
+                                        final cropped =
+                                            await ImageCropperHelper.cropImage(
+                                              imageFile: _pickedFile!,
+                                              title: 'Edit Image',
+                                            );
+                                        if (cropped != null) {
+                                          setState(() {
+                                            _pickedFile = cropped;
+                                          });
+                                        } else {
+                                          print('Edit button was clicked');
+                                        }
+                                      }, "Edit"),
+
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              ),
+
+                              /// Step 4 → password creation
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const SizedBox(height: 20),
-                                  AnimatedContainer(
-                                    duration: const Duration(seconds: 1),
-                                    curve: Curves.easeInOut,
-                                    width: _pickedFile != null ? 200 : 120,
-                                    height: _pickedFile != null ? 200 : 120,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: _pickedFile != null
-                                        ? ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            child: Image.file(
-                                              _pickedFile!,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                        : const Icon(
-                                            Icons.note_add_outlined,
-                                            size: 50,
-                                            color: Colors.black54,
-                                          ),
+                                  Text(
+                                    'Create Password',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineSmall,
                                   ),
                                   const SizedBox(height: 20),
-                                  ButtonsFun(
-                                    _pickFileOrCamera,
-                                    "Pick File / Camera",
-                                  ),
-                                  const SizedBox(height: 10),
-                                  if (_pickedFile != null)
-                                    ButtonsFun(() async {
-                                      final cropped =
-                                          await ImageCropperHelper.cropImage(
-                                            imageFile: _pickedFile!,
-                                            title: 'Edit Image',
-                                          );
-                                      if (cropped != null) {
-                                        setState(() {
-                                          _pickedFile = cropped;
-                                        });
-                                      } else {
-                                        print('Edit button was clicked');
+                                  InputFields(
+                                    _passwordController,
+                                    'Enter Password',
+                                    true,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Password is required';
                                       }
-                                    }, "Edit"),
-
+                                      if (value.length < 6) {
+                                        return 'Password must be at least 6 characters';
+                                      }
+                                      if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                                        return 'Password must contain at least one special character';
+                                      }
+                                      return null;
+                                    },
+                                  ),
                                   const SizedBox(height: 20),
+                                  InputFields(
+                                    _confirmPasswordController,
+                                    'Confirm Password',
+                                    true,
+                                  ),
                                 ],
                               ),
-                            ),
-
-                            /// Step 4 → password creation
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(height: 20),
-                                Text(
-                                  'Create Password',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.headlineSmall,
-                                ),
-                                const SizedBox(height: 20),
-                                InputFields(
-                                  _passwordController,
-                                  'Enter Password',
-                                  true,
-                                ),
-                                const SizedBox(height: 20),
-                                InputFields(
-                                  _confirmPasswordController,
-                                  'Confirm Password',
-                                  true,
-                                ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),

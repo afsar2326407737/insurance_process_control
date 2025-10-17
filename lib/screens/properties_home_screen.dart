@@ -9,7 +9,6 @@ import 'package:i_p_c/repository/couchbase_services.dart';
 import 'package:i_p_c/repository/database_helper.dart';
 import 'package:i_p_c/screens/settings_drawer.dart';
 import 'package:i_p_c/utils/details_container.dart';
-import '../model/inspection_detailes_model.dart';
 import '../utils/count_display_cart.dart' show StatCard;
 import '../utils/scaffold_message_notifier.dart';
 
@@ -27,11 +26,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
+    _countFeature();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<InspectionBloc>().add(InspectionInitialEvent());
     });
     _scrollController.addListener(_onScroll);
+  }
+
+  Future<List<int>> _countFeature() async {
+    List<int> result = [];
+    result.add(await CouchbaseServices().countNewPolicyInspections());
+    result.add(await CouchbaseServices().countHighPriorityInspections());
+    return result;
   }
 
   void _onScroll() {
@@ -48,17 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await context.read<InspectionBloc>().stream.firstWhere(
       (s) => s is InspectionLoaded || s is InspectionError,
     );
-  }
-
-  /// testing the data
-  int _countNewPolicies(List<Inspection> list) {
-    return list
-        .where((i) => i.inspectionType.toLowerCase() == 'new policy')
-        .length;
-  }
-
-  int _countHighPriority(List<Inspection> list) {
-    return list.where((i) => i.priority.toLowerCase() == 'high').length;
   }
 
   /// settings details fetching
@@ -202,8 +197,6 @@ class _HomeScreenState extends State<HomeScreen> {
               }
               if (state is InspectionLoaded) {
                 final inspections = state.inspections;
-                final newPolicies = _countNewPolicies(inspections);
-                final highPriority = _countHighPriority(inspections);
                 final showBottomLoader = state.isLoadingMore;
 
                 if (inspections.isEmpty) {
@@ -211,10 +204,37 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildStatsRow(
-                          newPolicies: newPolicies,
-                          highPriority: highPriority,
+                        FutureBuilder(
+                          future: _countFeature(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                  'Error: ${snapshot.error}',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              );
+                            } else if (snapshot.hasData) {
+                              final counts = snapshot.data!;
+                              final newPolicyCount = counts[0];
+                              final highPriorityCount = counts[1];
+                              return _buildStatsRow(
+                                newPolicies: newPolicyCount,
+                                highPriority: highPriorityCount,
+                              );
+                            } else {
+                              return const Center(
+                                child: Text('No data found.'),
+                              );
+                            }
+                          },
                         ),
+
                         const SizedBox(height: 16),
                         Text(
                           'No data found',
@@ -230,9 +250,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       if (index == 0) {
-                        return _buildStatsRow(
-                          newPolicies: newPolicies,
-                          highPriority: highPriority,
+                        return FutureBuilder(
+                          future: _countFeature(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                  'Error: ${snapshot.error}',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              );
+                            } else if (snapshot.hasData) {
+                              final counts = snapshot.data!;
+                              final newPolicyCount = counts[0];
+                              final highPriorityCount = counts[1];
+                              return _buildStatsRow(
+                                newPolicies: newPolicyCount,
+                                highPriority: highPriorityCount,
+                              );
+                            } else {
+                              return const Center(
+                                child: Text('No data found.'),
+                              );
+                            }
+                          },
                         );
                       }
 
