@@ -287,19 +287,15 @@ class _UploadReportScreenState extends State<UploadReportScreen> {
       child: TextButton(
         onPressed: () async {
           if (!_isVerified) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Please verify Employee ID first.")),
-            );
+            MyScaffoldMessenger.scaffoldSuccessMessage(context, "Please verify Employee ID first.", Colors.red);
             return;
           }
           final signatureBytes = await _signatureController.toPngBytes();
           if (signatureBytes == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Please provide a signature.")),
-            );
+            MyScaffoldMessenger.scaffoldSuccessMessage(context, "Please provide a signature.", Colors.red);
+
             return;
           }
-
           context.read<InspectionBloc>().add(
             SubmitReportEvent(
               inspectionId: _insuranceIdController.text,

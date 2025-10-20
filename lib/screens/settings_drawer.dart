@@ -89,7 +89,7 @@ class SettingsDrawer extends StatelessWidget {
                     icon: Icons.help_outline,
                     title: "Help & Support",
                     onTap: () {
-                      context.push('/helpandsupport' , extra: user.empId );
+                      context.push('/helpandsupport' , extra: {  'employeeId': user.empId , 'isManager' : user.role.toLowerCase() == 'manager'} );
                     },
                   ),
                   const Divider(),

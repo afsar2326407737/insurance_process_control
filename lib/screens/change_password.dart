@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:i_p_c/bloc/user_bloc/user_bloc.dart';
 import 'package:i_p_c/utils/button_fun.dart';
 import 'package:i_p_c/utils/input_fields.dart';
+import 'package:i_p_c/utils/scaffold_message_notifier.dart';
 
 class ChangePassword extends StatefulWidget {
   final String empId;
@@ -28,14 +29,6 @@ class _ChangePasswordState extends State<ChangePassword> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      // Handle password change logic here
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password changed successfully!')),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +89,15 @@ class _ChangePasswordState extends State<ChangePassword> {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    ClipOval(
+                      child: Image.asset(
+                        'assets/change_password.jpg',
+                        height: 200,
+                        width: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                     InputFields(_oldPasswordController, 'Old Password', true),
                     const SizedBox(height: 16),
                     InputFields(_newPasswordController, 'New Password', true),
@@ -123,9 +125,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                 context,
               ).showSnackBar(SnackBar(content: Text(state.error)));
             } else if (state is UserPasswordChangedState) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Password changed successfully!')),
-              );
+              MyScaffoldMessenger.scaffoldSuccessMessage(context, 'Password changed successfully!', Colors.green);
               context.pop();
             }
           },

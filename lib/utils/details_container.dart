@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:i_p_c/bloc/inspection_bloc/inspection_bloc.dart';
+import 'package:i_p_c/utils/scaffold_message_notifier.dart';
 import '../model/inspection_detailes_model.dart';
 
 class DetailsContainer extends StatefulWidget {
@@ -109,9 +110,7 @@ class _DetailsContainerState extends State<DetailsContainer> {
                   ),
                 ),
               ],
-            )
-
-
+            ),
         ],
       ),
     );
@@ -124,63 +123,84 @@ class _DetailsContainerState extends State<DetailsContainer> {
       final mediaItem = _media[index];
       final url = mediaItem.url;
 
-      return Hero(
-        tag: _heroTag,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: url.startsWith('http') || url.startsWith('https')
-                  ? Image.network(
-                      url,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) =>
-                          progress == null
-                          ? child
-                          : const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey.shade200,
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.broken_image_outlined,
-                          size: 48,
-                          color: Colors.grey,
+      return Banner(
+        location: BannerLocation.topStart,
+        message: widget.inspection.status,
+        color: widget.inspection.status.toLowerCase() == 'completed'
+            ? Colors.green
+            : widget.inspection.status.toLowerCase() == 'in progress'
+            ? Colors.orange
+            : Colors.red,
+        textStyle: Theme.of(context).textTheme.headlineLarge!.copyWith(
+          fontSize: 12,
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
+        shadow: BoxShadow(
+          color: Colors.black,
+          offset: Offset(2, 2),
+          blurRadius: 4,
+        ),
+        child: Hero(
+          tag: _heroTag,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: url.startsWith('http') || url.startsWith('https')
+                    ? Image.network(
+                        url,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) =>
+                            progress == null
+                            ? child
+                            : const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey.shade200,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.broken_image_outlined,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    : Image.file(
+                        File(url),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey.shade200,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.broken_image_outlined,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                    )
-                  : Image.file(
-                      File(url),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey.shade200,
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.broken_image_outlined,
-                          size: 48,
-                          color: Colors.grey,
-                        ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 120,
+                child: IgnorePointer(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [Colors.black54, Colors.transparent],
                       ),
-                    ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 120,
-              child: IgnorePointer(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [Colors.black54, Colors.transparent],
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -279,17 +299,6 @@ class _DetailsContainerState extends State<DetailsContainer> {
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-              if (status.isNotEmpty)
-                Chip(
-                  backgroundColor: status.toLowerCase() == 'completed'
-                      ? Colors.green.shade100
-                      : status.toLowerCase() == 'in progress'
-                      ? Colors.orange.shade100
-                      : Colors.red.shade100,
-                  label: Text(status),
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
               if (priority.isNotEmpty)
                 Chip(
                   backgroundColor: priority.toLowerCase() == 'high'
@@ -333,9 +342,10 @@ class _DetailsContainerState extends State<DetailsContainer> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white,
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 6,
+      elevation: 20,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {

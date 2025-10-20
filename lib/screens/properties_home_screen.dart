@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       drawer: FutureBuilder<User?>(
         future: getLoggedInUser(),
         builder: (context, snapshot) {
@@ -330,10 +330,11 @@ class _HomeScreenState extends State<HomeScreen> {
           if (snapshot.hasData &&
               snapshot.data!.role.toLowerCase() == 'manager') {
             return FloatingActionButton(
+              backgroundColor: Colors.purple[400],
               onPressed: () async {
                 context.push('/newinspection');
               },
-              child: Icon(Icons.add),
+              child: Icon(Icons.add,color: Colors.black,),
             );
           }
           return SizedBox.shrink();

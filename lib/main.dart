@@ -120,8 +120,9 @@ class MyApp extends StatelessWidget {
               }
               return ChangePassword(empId: empId);
             case 'helpandsupport':
-              final extra = state.extra as String?;
-              final employeeId = extra ?? '';
+              final extra = state.extra as Map<String , dynamic>;
+              final employeeId = extra['employeeId'] as String? ?? '';
+              final isManager = extra['isManager'] as bool? ?? false;
               if (employeeId.isEmpty) {
                 return const Scaffold(
                   body: Center(child: Text('Missing employee ID')),
@@ -129,7 +130,10 @@ class MyApp extends StatelessWidget {
               }
               return BlocProvider(
                 create: (context) => SupportReqBloc(),
-                child: HelpSupportScreen(employeeId: employeeId),
+                child: HelpSupportScreen(
+                  employeeId: employeeId,
+                  isManager: isManager,
+                ),
               );
             default:
               return const Scaffold(

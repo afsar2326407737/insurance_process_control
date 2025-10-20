@@ -125,12 +125,7 @@ class _SignupPageState extends State<SignupPage> {
   void _nextPage() async {
     if (_currentPage == 0) {
       if (_userEmpId == null || _userEmpId!.isEmpty || _userEmpId!.length < 6) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Please enter a valid Employee ID"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        MyScaffoldMessenger.scaffoldSuccessMessage(context, "Please enter a valid Employee ID", Colors.red);
         return;
       }
       final empIdExists = await DatabaseHelper().doesEmpIdExist(_userEmpId!);
@@ -190,9 +185,7 @@ class _SignupPageState extends State<SignupPage> {
     if (!(_formKey.currentState?.validate() ?? true)) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
+      MyScaffoldMessenger.scaffoldSuccessMessage(context, "Passwords do not match", Colors.red);
       return;
     }
     _userBloc.add(
@@ -537,11 +530,8 @@ class _SignupPageState extends State<SignupPage> {
                                   );
                                   GoRouter.of(context).go('/home');
                                 } else if (state is UserErrorState) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error : ${state.error}'),
-                                    ),
-                                  );
+                                  MyScaffoldMessenger.scaffoldSuccessMessage(context, 'Error : ${state.error}', Colors.red);
+
                                 }
                               },
                               builder: (context, state) {
