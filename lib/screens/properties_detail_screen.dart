@@ -153,7 +153,7 @@ class InspectionDetailsScreen extends StatelessWidget {
             ),
           ),
 
-          // Key info rows
+          /// Key info rows
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),

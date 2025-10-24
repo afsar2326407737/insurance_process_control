@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../model/user_model.dart';
@@ -58,7 +59,9 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> result = await dbClient.query('users');
     final users = result.map((e) => User.fromMap(e)).toList();
     for (var user in users) {
-      print(user.toString());
+      if (kDebugMode) {
+        print(user.toString());
+      }
     }
     return users;
   }

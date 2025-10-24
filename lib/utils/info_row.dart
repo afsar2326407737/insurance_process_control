@@ -17,8 +17,10 @@ class InfoRow extends StatelessWidget {
       dense: true,
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(value),
+      title: Text(title , style: Theme.of(context).textTheme.bodyMedium,),
+      subtitle: Text(value , style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+        color: Colors.black
+      ),),
     );
   }
 }

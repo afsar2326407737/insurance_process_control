@@ -1,0 +1,12 @@
+{
+  "banks": [
+    {
+      "bank_id": "B001",
+      "bank_name": "State Bank of India"
+    },
+    {
+      "bank_id": "B002",
+      "bank_name": "HDFC Bank"
+    }
+  ]
+}

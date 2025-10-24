@@ -1,10 +1,7 @@
-
-
 /// function to run only once because the data should be stored at only once
+library;
 import 'dart:developer';
-
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'couchbase_services.dart';
 
 Future<void> runOnceOnFirstInstall() async{
@@ -14,7 +11,7 @@ Future<void> runOnceOnFirstInstall() async{
 
   if (isFirstRun) {
     await CouchbaseServices().storePaginatedJsonData();
-
+    await CouchbaseServices().storeBankDetails();
     await prefs.setBool('isFirstRun', false);
     log("First-run initialization done!",name: 'Initialization');
   } else {

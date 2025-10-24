@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:cbl/cbl.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:i_p_c/repository/couchbase_helper.dart';
-
+import '../model/bank_det_models.dart';
 import '../model/inspection_detailes_model.dart';
 import '../model/page_inspection_model.dart';
 import '../model/support_request_model.dart';
@@ -13,6 +13,7 @@ class CouchbaseServices {
   /// store the value in the database
   Future<void> storePaginatedJsonData() async {
     final db = CouchbaseHelper.db;
+    final collection = await db.defaultCollection;
 
     /// get the total pages from the json file
     final jsonInitialString = await rootBundle.loadString(
@@ -44,7 +45,7 @@ class CouchbaseServices {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      await db.saveDocument(pageMetaDoc);
+      await collection.saveDocument(pageMetaDoc);
 
       /// Save inspection records individually, but link them to the page
       for (var item in jsonData['data']) {
@@ -54,23 +55,80 @@ class CouchbaseServices {
           'page': currentPage,
         });
 
-        await db.saveDocument(doc);
+        await collection.saveDocument(doc);
       }
     }
   }
 
+  Future<void> storeBankDetails() async {
+    final db = CouchbaseHelper.db;
+    final collection = await db.defaultCollection;
+    final jsonString = await rootBundle.loadString(
+      'assets/bank_data/bank_details.json',
+    );
+    final jsonData = json.decode(jsonString);
+    final bankDet = BankDet.fromJson(jsonData);
+    for (var bank in bankDet.banks ?? []) {
+      final doc = MutableDocument({
+        'type': 'bank',
+        'bank_id': bank.bankId,
+        'bank_name': bank.bankName,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+      await collection.saveDocument(doc);
+    }
+    if (kDebugMode) {
+      log(
+        "Bank details stored successfully in Couchbase Lite",
+        name: 'CouchbaseServices',
+      );
+    }
+  }
+
+  Future<BankDet> getBankDetails() async {
+    final db = CouchbaseHelper.db;
+    final collection = await db.defaultCollection;
+
+    final query = QueryBuilder()
+        .select(SelectResult.all())
+        .from(DataSource.collection(collection))
+        .where(Expression.property('type').equalTo(Expression.string('bank')));
+
+    final result = await query.execute();
+    final List<Banks> banks = [];
+
+    await for (final row in result.asStream()) {
+      final docData = row.dictionary(collection.name)?.toPlainMap();
+      if (docData != null) {
+        banks.add(
+          Banks(
+            bankId: docData['bank_id'] as String?,
+            bankName: docData['bank_name'] as String?,
+          ),
+        );
+      }
+    }
+    log(
+      "Fetched ${banks.length} banks from Couchbase Lite",
+      name: 'CouchbaseServices',
+    );
+    return BankDet(banks: banks);
+  }
+
   Future<List<Map<String, Object?>>> getAllInspections() async {
     final db = CouchbaseHelper.db;
+    final collection = await db.defaultCollection;
 
     final query = const QueryBuilder()
         .select(SelectResult.all())
-        .from(DataSource.database(db))
+        .from(DataSource.collection(collection))
         .where(
           Expression.property('type').equalTo(Expression.string('inspection')),
         );
 
     final resultSet = await query.execute();
-    final result = await (await resultSet.allResults())
+    final result = (await resultSet.allResults())
         .map((r) => r.toPlainMap())
         .toList();
     return result;
@@ -78,10 +136,11 @@ class CouchbaseServices {
 
   Future<List<Map<String, Object?>>> getInspectionsByPage(int page) async {
     final db = CouchbaseHelper.db;
+    final collection = await db.defaultCollection;
 
     final query = const QueryBuilder()
         .select(SelectResult.all())
-        .from(DataSource.database(db))
+        .from(DataSource.collection(collection))
         .where(
           Expression.property('type')
               .equalTo(Expression.string('inspection'))
@@ -98,9 +157,10 @@ class CouchbaseServices {
   /// fetch the data using the pagination concepts
   Future<PaginatedInspections> fetchInspections({required int page}) async {
     final db = CouchbaseHelper.db;
-    final query = await QueryBuilder()
+    final collection = await db.defaultCollection;
+    final query =  QueryBuilder()
         .select(SelectResult.expression(Meta.id), SelectResult.all())
-        .from(DataSource.database(db))
+        .from(DataSource.collection(collection))
         .where(
           Expression.property('type')
               .equalTo(Expression.string('inspection'))
@@ -117,7 +177,7 @@ class CouchbaseServices {
     for (final result in results) {
       final map = result.toPlainMap();
 
-      final data = map['inspections_db'];
+      final data = map[collection.name];
       if (data is Map<String, Object?>) {
         inspections.add(Inspection.fromJson(data));
       } else {
@@ -128,9 +188,9 @@ class CouchbaseServices {
       }
     }
 
-    final metaQuery = await QueryBuilder()
+    final metaQuery =  QueryBuilder()
         .select(SelectResult.all())
-        .from(DataSource.database(db))
+        .from(DataSource.collection(collection))
         .where(
           Expression.property('type')
               .equalTo(Expression.string('page_metadata'))
@@ -145,13 +205,13 @@ class CouchbaseServices {
     final metaResults = await metaResultSet.allResults();
     for (final meta in metaResults) {
       final map = meta.toPlainMap();
-      final metaData = map['inspections_db'];
+      final metaData = map[collection.name];
       if (metaData is Map<String, Object?>) {
         totalPages = metaData['total_pages'] as int? ?? 1;
       }
     }
 
-    log('Total Pages ${totalPages}', name: 'CouchbaseServices');
+    log('Total Pages $totalPages', name: 'CouchbaseServices');
     return PaginatedInspections(
       inspections: inspections,
       page: page,
@@ -210,10 +270,11 @@ class CouchbaseServices {
     Map<String, Object?> newInspection,
   ) async {
     final db = CouchbaseHelper.db;
+    final collection = await db.defaultCollection;
 
-    final metaQueryWithId = await QueryBuilder()
+    final metaQueryWithId =  QueryBuilder()
         .select(SelectResult.expression(Meta.id), SelectResult.all())
-        .from(DataSource.database(db))
+        .from(DataSource.collection(collection))
         .where(
           Expression.property(
             'type',
@@ -228,7 +289,7 @@ class CouchbaseServices {
     ///to get the last page and per page from the last meta data
     if (metaResults.isNotEmpty) {
       final lastMetaMap =
-          metaResults.last.toPlainMap()['inspections_db']
+          metaResults.last.toPlainMap()[collection.name]
               as Map<String, Object?>?;
       if (lastMetaMap != null) {
         lastPage = lastMetaMap['page'] as int? ?? 1;
@@ -237,9 +298,9 @@ class CouchbaseServices {
     }
 
     /// count no of inspections in the last page
-    final countQuery = await QueryBuilder()
+    final countQuery =  QueryBuilder()
         .select(SelectResult.expression(Meta.id))
-        .from(DataSource.database(db))
+        .from(DataSource.collection(collection))
         .where(
           Expression.property('type')
               .equalTo(Expression.string('inspection'))
@@ -266,7 +327,7 @@ class CouchbaseServices {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      await db.saveDocument(newMetaDoc);
+      await collection.saveDocument(newMetaDoc);
     }
 
     /// Update total_pages in all existing page_metadata documents
@@ -274,12 +335,12 @@ class CouchbaseServices {
       final map = meta.toPlainMap();
       final docId = map['id'];
       if (docId is String) {
-        final existingDoc = await db.document(docId);
+        final existingDoc = await collection.document(docId);
         if (existingDoc != null) {
           final mutable = existingDoc.toMutable();
           mutable.setInteger(key: 'total_pages', targetPage);
           mutable.setString(key: 'timestamp', DateTime.now().toIso8601String());
-          await db.saveDocument(mutable);
+          await collection.saveDocument(mutable);
         } else {
           log(
             'Could not find document with ID: $docId',
@@ -296,16 +357,17 @@ class CouchbaseServices {
       'page': targetPage,
     });
 
-    await db.saveDocument(newInspectionDoc);
+    await collection.saveDocument(newInspectionDoc);
     log('New inspection Added to page $targetPage', name: 'CouchbaseServices');
   }
 
   /// test function to print the meta result
   Future<void> printMetaResult() async {
     final db = CouchbaseHelper.db;
-    final countQuery = await QueryBuilder()
+    final collection = await db.defaultCollection;
+    final countQuery =  QueryBuilder()
         .select(SelectResult.expression(Meta.id))
-        .from(DataSource.database(db))
+        .from(DataSource.collection(collection))
         .where(
           Expression.property('type')
               .equalTo(Expression.string('inspection'))
@@ -322,10 +384,11 @@ class CouchbaseServices {
     String inspectionId,
   ) async {
     final db = CouchbaseHelper.db;
+    final collection = await db.defaultCollection;
     try {
       final query = const QueryBuilder()
           .select(SelectResult.expression(Meta.id), SelectResult.all())
-          .from(DataSource.database(db))
+          .from(DataSource.collection(collection))
           .where(
             Expression.property('type')
                 .equalTo(Expression.string('inspection'))
@@ -349,7 +412,7 @@ class CouchbaseServices {
       final result = results.first;
       final docId = result.toPlainMap()['id'];
       final inspectionData =
-          result.toPlainMap()['inspections_db'] as Map<String, Object?>?;
+          result.toPlainMap()[collection.name] as Map<String, Object?>?;
 
       ///debugging print
       log('Found document id: $docId', name: 'Couchbase Services');
@@ -373,9 +436,9 @@ class CouchbaseServices {
         docId.toString(),
         inspectionData,
       );
-      await db.saveDocument(mutableDoc);
+      await collection.saveDocument(mutableDoc);
 
-      final updated = await db.document(docId.toString());
+      final updated = await collection.document(docId.toString());
       log(
         'Updated inspection data: ${updated?.toPlainMap()}',
         name: 'Couchbase Services',
@@ -392,10 +455,11 @@ class CouchbaseServices {
   Future<bool> doesInspectionIdExist(String inspectionId) async {
     try {
       final db = CouchbaseHelper.db;
+      final collection = await db.defaultCollection;
 
       final query = const QueryBuilder()
           .select(SelectResult.expression(Meta.id))
-          .from(DataSource.database(db))
+          .from(DataSource.collection(collection))
           .where(
             Expression.property('type')
                 .equalTo(Expression.string('inspection'))
@@ -422,14 +486,14 @@ class CouchbaseServices {
     }
   }
 
-  ///delete the inspections
+  /// delete the inspections
   Future<String?> deleteInspectionById(String inspectionId) async {
     try {
       final db = CouchbaseHelper.db;
-
+      final collection = await db.defaultCollection;
       final query = const QueryBuilder()
           .select(SelectResult.expression(Meta.id))
-          .from(DataSource.database(db))
+          .from(DataSource.collection(collection))
           .where(
             Expression.property('type')
                 .equalTo(Expression.string('inspection'))
@@ -453,10 +517,10 @@ class CouchbaseServices {
 
       final docId = results.first.toPlainMap()['id'] as String;
 
-      final doc = await db.document(docId);
+      final doc = await collection.document(docId);
 
       if (doc != null) {
-        await db.deleteDocument(doc);
+        await collection.deleteDocument(doc);
         log(
           'Inspection with ID $inspectionId deleted successfully.',
           name: 'CouchbaseServices',
@@ -533,13 +597,14 @@ class CouchbaseServices {
   Future<bool> storeSupportReport(String employeeId, String message) async {
     try {
       final db = CouchbaseHelper.db;
+      final collection = await db.defaultCollection;
       final doc = MutableDocument({
         'type': 'support_request',
         'employee_id': employeeId,
         'message': message,
         'timestamp': DateTime.now().toIso8601String(),
       });
-      await db.saveDocument(doc);
+      await collection.saveDocument(doc);
       log('Message stored successfully for employee: $employeeId');
       return true;
     } catch (e) {

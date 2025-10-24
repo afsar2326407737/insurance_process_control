@@ -1,10 +1,13 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
+import 'package:i_p_c/model/bank_det_models.dart';
 
 class User extends Equatable {
   final String empId;
   final String name;
   final String email;
-  final String branch;
+  final Banks branch;
   final String role;
   final String password;
   final String? filePath;
@@ -20,7 +23,15 @@ class User extends Equatable {
   });
 
   @override
-  List<Object?> get props => [empId, name, email, branch, role, password, filePath];
+  List<Object?> get props => [
+    empId,
+    name,
+    email,
+    branch,
+    role,
+    password,
+    filePath,
+  ];
 
   /// helper for debugging
   @override
@@ -33,7 +44,7 @@ class User extends Equatable {
       'empId': empId,
       'name': name,
       'email': email,
-      'branch': branch,
+      'branch':  jsonEncode(branch.toJson()),
       'role': role,
       'password': password,
       'filepath': filePath,
@@ -41,11 +52,15 @@ class User extends Equatable {
   }
 
   factory User.fromMap(Map<String, Object?> map) {
+    final branchJson = map['branch'];
+
     return User(
       empId: map['empId'] as String,
       name: map['name'] as String,
       email: map['email'] as String,
-      branch: map['branch'] as String,
+      branch: branchJson is String
+          ? Banks.fromJson(jsonDecode(branchJson))
+          : Banks.fromJson(Map<String, dynamic>.from(branchJson as Map)),
       role: map['role'] as String,
       password: map['password'] as String,
       filePath: map['filepath'] as String?,

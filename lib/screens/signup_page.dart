@@ -5,11 +5,15 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:i_p_c/bloc/user_bloc/user_bloc.dart';
 import 'package:i_p_c/components/colors.dart';
+import 'package:i_p_c/repository/couchbase_services.dart';
 import 'package:i_p_c/utils/button_fun.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pinput/pinput.dart';
+import '../model/bank_det_models.dart';
 import '../model/user_model.dart';
+import '../platform_channels/camera_channel.dart';
 import '../repository/database_helper.dart';
 import '../utils/image_cropper_helper.dart' show ImageCropperHelper;
 import '../utils/input_fields.dart';
@@ -28,7 +32,6 @@ class _SignupPageState extends State<SignupPage> {
   /// controllers
   final _userNameController = TextEditingController();
   final _userEmailController = TextEditingController();
-  final _userBranchController = TextEditingController();
   String? _userEmpId;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -44,6 +47,38 @@ class _SignupPageState extends State<SignupPage> {
   /// validation of the empid
   bool isValidEmpid = false;
 
+  ///Bank branches field
+  String? _selectedBranch;
+  String? _selectedBankId;
+
+  Future<void> _handleCamera() async {
+    context.pop();
+    var status = await Permission.camera.status;
+
+    if (status.isDenied || status.isRestricted) {
+      status = await Permission.camera.request();
+    }
+
+    if (status.isPermanentlyDenied) {
+      await openAppSettings();
+      return;
+    }
+
+    if (status.isGranted) {
+      final pickedFile = await CameraChannel.takePictureNative();
+      if (pickedFile != null) {
+        log('Camera image path: ${pickedFile.path}' , name: 'SignupPage');
+        setState(() {
+          _pickedFile = pickedFile;
+        });
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Camera permission denied')),
+      );
+    }
+  }
+
   /// bottom bar to pick the photo or image from the phone
   Future<void> _pickFileOrCamera() async {
     showModalBottomSheet(
@@ -58,16 +93,7 @@ class _SignupPageState extends State<SignupPage> {
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text("Take a photo"),
-                onTap: () async {
-                  context.pop();
-                  final picker = ImagePicker();
-                  final picked = await picker.pickImage(
-                    source: ImageSource.camera,
-                  );
-                  if (picked != null) {
-                    setState(() => _pickedFile = File(picked.path));
-                  }
-                },
+                onTap: _handleCamera,
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
@@ -125,7 +151,11 @@ class _SignupPageState extends State<SignupPage> {
   void _nextPage() async {
     if (_currentPage == 0) {
       if (_userEmpId == null || _userEmpId!.isEmpty || _userEmpId!.length < 6) {
-        MyScaffoldMessenger.scaffoldSuccessMessage(context, "Please enter a valid Employee ID", Colors.red);
+        MyScaffoldMessenger.scaffoldSuccessMessage(
+          context,
+          "Please enter a valid Employee ID",
+          Colors.red,
+        );
         return;
       }
       final empIdExists = await DatabaseHelper().doesEmpIdExist(_userEmpId!);
@@ -185,7 +215,11 @@ class _SignupPageState extends State<SignupPage> {
     if (!(_formKey.currentState?.validate() ?? true)) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      MyScaffoldMessenger.scaffoldSuccessMessage(context, "Passwords do not match", Colors.red);
+      MyScaffoldMessenger.scaffoldSuccessMessage(
+        context,
+        "Passwords do not match",
+        Colors.red,
+      );
       return;
     }
     _userBloc.add(
@@ -194,7 +228,10 @@ class _SignupPageState extends State<SignupPage> {
           empId: _userEmpId!,
           name: _userNameController.text,
           email: _userEmailController.text,
-          branch: _userBranchController.text,
+          branch: Banks(
+            bankId: _selectedBankId,
+            bankName: _selectedBranch,
+          ),
           role: _role ?? 'null',
           password: _passwordController.text,
           filePath: _pickedFile?.path,
@@ -274,7 +311,9 @@ class _SignupPageState extends State<SignupPage> {
                                       if (value == null || value.isEmpty) {
                                         return 'Email is required';
                                       }
-                                      if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                      if (!RegExp(
+                                        r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                      ).hasMatch(value)) {
                                         return 'Enter a valid email';
                                       }
                                       return null;
@@ -287,11 +326,91 @@ class _SignupPageState extends State<SignupPage> {
                               SingleChildScrollView(
                                 child: Column(
                                   children: [
-                                    const SizedBox(height: 20),
-                                    InputFields(
-                                      _userBranchController,
-                                      'Enter the Branch',
-                                      false,
+                                    const SizedBox(height: 50),
+                                    FutureBuilder<BankDet>(
+                                      future: CouchbaseServices()
+                                          .getBankDetails(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        } else if (snapshot.hasError) {
+                                          return Text(
+                                            'Error loading banks: ${snapshot.error}',
+                                          );
+                                        } else if (!snapshot.hasData ||
+                                            snapshot.data!.banks == null ||
+                                            snapshot.data!.banks!.isEmpty) {
+                                          return const Text(
+                                            'No bank data found.',
+                                          );
+                                        }
+
+                                        final banks = snapshot.data!.banks!;
+                                        final bankNames = banks
+                                            .map((bank) => bank.bankName ?? '')
+                                            .where((name) => name.isNotEmpty)
+                                            .toList();
+                                        final bankIds = banks
+                                            .map((bank) => bank.bankId ?? '')
+                                            .where((id) => id.isNotEmpty)
+                                            .toList();
+                                        return DropdownButtonFormField<String>(
+                                          value: _selectedBranch,
+                                          decoration: InputDecoration(
+                                            labelText: 'Select Bank',
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  vertical: 10,
+                                                  horizontal: 12,
+                                                ),
+                                          ),
+                                          items: bankNames.map((bank) {
+                                            return DropdownMenuItem<String>(
+                                              value: bank,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(Icons.account_balance, color: Colors.blueAccent),
+                                                    const SizedBox(width: 10),
+                                                    Text(
+                                                      bank,
+                                                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.w500 , fontSize: 16),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _selectedBranch = value;
+                                              final index = bankNames
+                                                  .indexOf(value!);
+                                              _selectedBankId =
+                                                  bankIds[index];
+                                            });
+                                          },
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Bank selection is required';
+                                            }
+                                            return null;
+                                          },
+                                        );
+                                      },
                                     ),
                                     const SizedBox(height: 50),
                                     Text(
@@ -359,9 +478,8 @@ class _SignupPageState extends State<SignupPage> {
                                       ),
                                       child: _pickedFile != null
                                           ? ClipRRect(
-                                              borderRadius: BorderRadius.circular(
-                                                12,
-                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                               child: Image.file(
                                                 _pickedFile!,
                                                 fit: BoxFit.cover,
@@ -423,7 +541,9 @@ class _SignupPageState extends State<SignupPage> {
                                       if (value.length < 6) {
                                         return 'Password must be at least 6 characters';
                                       }
-                                      if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                                      if (!RegExp(
+                                        r'[!@#$%^&*(),.?":{}|<>]',
+                                      ).hasMatch(value)) {
                                         return 'Password must contain at least one special character';
                                       }
                                       return null;
@@ -530,8 +650,11 @@ class _SignupPageState extends State<SignupPage> {
                                   );
                                   GoRouter.of(context).go('/home');
                                 } else if (state is UserErrorState) {
-                                  MyScaffoldMessenger.scaffoldSuccessMessage(context, 'Error : ${state.error}', Colors.red);
-
+                                  MyScaffoldMessenger.scaffoldSuccessMessage(
+                                    context,
+                                    'Error : ${state.error}',
+                                    Colors.red,
+                                  );
                                 }
                               },
                               builder: (context, state) {

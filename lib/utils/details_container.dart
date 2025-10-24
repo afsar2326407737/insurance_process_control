@@ -56,7 +56,10 @@ class _DetailsContainerState extends State<DetailsContainer> {
             backgroundColor: Colors.grey.shade300,
             child: Text(
               initials,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
           const SizedBox(width: 10),

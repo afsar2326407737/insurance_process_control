@@ -1,8 +1,6 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:i_p_c/model/user_model.dart';
-
 import '../utils/image_dialog.dart';
 import '../utils/logout_container.dart';
 
@@ -26,16 +24,15 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
-        title: const Text(
+        title:  Text(
           'Profile',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style:Theme.of(context).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // 🔹 Banner with Gradient
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -87,7 +84,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   Text(
                     user.name,
-                    style: const TextStyle(
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -109,7 +106,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         child: Text(
                           user.role,
-                          style: const TextStyle(
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: Colors.white,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -117,11 +114,22 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        user.branch,
-                        style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 14,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.yellow,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          user.branch.bankId ?? "Null",
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: Colors.black,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -138,7 +146,8 @@ class ProfileScreen extends StatelessWidget {
                 vertical: 10.0,
               ),
               child: Card(
-                elevation: 2,
+                elevation: 6,
+                color: Colors.purple.shade50,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -150,11 +159,15 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _profileItem(Icons.badge, "Employee ID", user.empId),
-                      const Divider(),
-                      _profileItem(Icons.email_outlined, "Email", user.email),
-                      const Divider(),
-                      _profileItem(Icons.location_city, "Branch", user.branch),
+                      _profileItem(Icons.badge, "Employee ID", user.empId , context),
+                      const Divider(
+                        color: Colors.black,
+                      ),
+                      _profileItem(Icons.email_outlined, "Email", user.email , context),
+                      const Divider(
+                        color: Colors.black,
+                      ),
+                      _profileItem(Icons.location_city, "Branch", user.branch.bankName ?? "Null" , context),
                     ],
                   ),
                 ),
@@ -181,8 +194,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Helper for info items
-  Widget _profileItem(IconData icon, String label, String value) {
+  Widget _profileItem(IconData icon, String label, String value , BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -191,7 +203,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             label,
-            style: const TextStyle(
+            style:Theme.of(context).textTheme.bodyMedium!.copyWith(
               fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
@@ -200,7 +212,7 @@ class ProfileScreen extends StatelessWidget {
           Flexible(
             child: Text(
               value,
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.left,
               overflow: TextOverflow.clip,
               style: const TextStyle(
                 color: Colors.black54,
