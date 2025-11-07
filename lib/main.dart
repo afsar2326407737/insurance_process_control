@@ -29,6 +29,7 @@ import 'package:cbl_flutter/cbl_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Future.delayed(const Duration(milliseconds: 300));
   // Initialize Couchbase only once here
   await CouchbaseLiteFlutter.init();
   await CouchbaseHelper().initCouchbase();

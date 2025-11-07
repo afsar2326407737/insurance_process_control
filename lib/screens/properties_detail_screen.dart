@@ -45,7 +45,7 @@ class InspectionDetailsScreen extends StatelessWidget {
                 ],
               ),
               child: BackButton(
-                color: Colors.black, // Icon color
+                color: Colors.black,
               ),
             ),
             pinned: true,
@@ -53,17 +53,13 @@ class InspectionDetailsScreen extends StatelessWidget {
             expandedHeight: 300,
             backgroundColor: Colors.black,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsetsDirectional.only(
-                start: 16,
-                bottom: 16,
-                end: 16,
-              ),
+              centerTitle: true,
               title: Text(
                 inspection.propertyName.isEmpty
                     ? 'Inspection'
                     : inspection.propertyName,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.clip,
                 style: Theme.of(
                   context,
                 ).textTheme.headlineMedium!.copyWith(color: Colors.white),
@@ -78,7 +74,7 @@ class InspectionDetailsScreen extends StatelessWidget {
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    height: 80, // Adjust for shadow height
+                    height: 80,
                     child: Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
@@ -114,6 +110,7 @@ class InspectionDetailsScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
+                    overflow: TextOverflow.clip,
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -223,27 +220,29 @@ class InspectionDetailsScreen extends StatelessWidget {
                 ),
               ),
             ),
-        ],
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: inspection.completionStatus != null
-            ? ButtonsFun(() {
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 40.0 , left: 16.0 , right: 16.0),
+              child: inspection.completionStatus != null
+                  ? ButtonsFun(() {
                 showDialog(
                   context: context,
                   builder: (context) => ReportDialog(
                     employeeId: inspection.completionStatus?.employeeId ?? '',
                     createdAt: inspection.completionStatus?.createdAt ?? '',
                     mediaPaths:
-                        inspection.completionStatus?.proofMedia ?? const [],
+                    inspection.completionStatus?.proofMedia ?? const [],
                     signature:
-                        inspection.completionStatus?.signature ?? Uint8List(0),
+                    inspection.completionStatus?.signature ?? Uint8List(0),
                   ),
                 );
               }, 'View Report')
-            : ButtonsFun(() {
+                  : ButtonsFun(() {
                 context.push('/uploadreport', extra: inspection.inspectionId);
               }, 'Take'),
+            ),
+          )
+        ],
       ),
     );
   }

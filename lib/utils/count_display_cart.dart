@@ -18,7 +18,6 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: [start, end]),
         borderRadius: BorderRadius.circular(16),
@@ -48,19 +47,27 @@ class StatCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('$count',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+                SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: FittedBox(
+                    child: Text('$count',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelLarge
-                        ?.copyWith(color: Colors.white.withOpacity(0.95))),
+                FittedBox(
+                  child: Text(title,
+                      maxLines: 1,
+                      overflow: TextOverflow.clip,
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelLarge
+                          ?.copyWith(color: Colors.white.withOpacity(0.95))),
+                ),
               ],
             ),
           ),

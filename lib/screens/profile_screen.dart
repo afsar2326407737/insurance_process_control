@@ -39,11 +39,7 @@ class ProfileScreen extends StatelessWidget {
                 Container(
                   height: 80,
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF8E2DE2), Color(0xFF6A82FB)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: Color(0xFF003B71)
                   ),
                 ),
                 Positioned(
@@ -146,8 +142,7 @@ class ProfileScreen extends StatelessWidget {
                 vertical: 10.0,
               ),
               child: Card(
-                elevation: 6,
-                color: Colors.purple.shade50,
+                elevation: 8,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),

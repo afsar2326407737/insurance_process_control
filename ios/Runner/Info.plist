@@ -55,5 +55,16 @@
 
         <key>NSMicrophoneUsageDescription</key>
         <string>This app requires microphone access to record videos.</string>
-	</dict>
+
+        <key>NSCameraUsageDescription</key>
+        <string>We need to use your camera to capture property inspection photos.</string>
+
+        <key>NSAppTransportSecurity</key>
+        <dict>
+            <!-- Allow all domains (for testing only) -->
+            <key>NSAllowsArbitraryLoads</key>
+            <true/>
+        </dict>
+
+    </dict>
 </plist>

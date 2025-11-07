@@ -127,8 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icon(Icons.menu, color: Colors.white),
               ),
             ),
-            centerTitle: false,
             pinned: true,
+            centerTitle: true,
             elevation: 0,
             expandedHeight: 140,
             backgroundColor: Colors.transparent,
@@ -142,24 +142,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
             flexibleSpace: ClipRRect(
+
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(20),
               ),
               child: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF8E2DE2), Color(0xFF6A82FB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Color(0xFF003B71),
                 ),
                 child: const FlexibleSpaceBar(
                   collapseMode: CollapseMode.pin,
-                  titlePadding: EdgeInsetsDirectional.only(
-                    start: 56,
-                    bottom: 12,
-                    end: 16,
-                  ),
+                  centerTitle: true,
                   title: Text(
                     'Home',
                     maxLines: 1,
@@ -330,11 +323,11 @@ class _HomeScreenState extends State<HomeScreen> {
           if (snapshot.hasData &&
               snapshot.data!.role.toLowerCase() == 'manager') {
             return FloatingActionButton(
-              backgroundColor: Colors.purple[400],
+              backgroundColor: Color(0xFF003B71),
               onPressed: () async {
                 context.push('/newinspection');
               },
-              child: Icon(Icons.add,color: Colors.black,),
+              child: Icon(Icons.add,color: Colors.white,),
             );
           }
           return SizedBox.shrink();

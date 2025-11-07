@@ -53,7 +53,6 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
             floating: true,
             snap: true,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
               title: Text(
                 'New Inspection',
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -63,11 +62,7 @@ class _NewInspectionScreenState extends State<NewInspectionScreen> {
               ),
               background: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF8E2DE2), Color(0xFF6A82FB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Color(0xFF003B71)
                 ),
               ),
             ),

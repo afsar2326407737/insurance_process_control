@@ -53,19 +53,11 @@ class _ChangePasswordState extends State<ChangePassword> {
               ),
               child: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF8E2DE2), Color(0xFF6A82FB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Color(0xFF003B71)
                 ),
                 child: const FlexibleSpaceBar(
+                  centerTitle: true,
                   collapseMode: CollapseMode.pin,
-                  titlePadding: EdgeInsetsDirectional.only(
-                    start: 56,
-                    bottom: 12,
-                    end: 16,
-                  ),
                   title: Text(
                     'Change Password',
                     maxLines: 1,
@@ -79,8 +71,7 @@ class _ChangePasswordState extends State<ChangePassword> {
               ),
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: false,
+          SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Form(
@@ -113,37 +104,39 @@ class _ChangePasswordState extends State<ChangePassword> {
               ),
             ),
           ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: BlocConsumer<UserBloc, UserState>(
+                bloc: context.read<UserBloc>(),
+                listener: (context, state) {
+                  if (state is UserErrorState) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(state.error)));
+                  } else if (state is UserPasswordChangedState) {
+                    MyScaffoldMessenger.scaffoldSuccessMessage(context, 'Password changed successfully!', Colors.green);
+                    context.pop();
+                  }
+                },
+                builder: (context, state) {
+                  if (state is UserLoadingState) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return ButtonsFun(() {
+                    context.read<UserBloc>().add(
+                      ChangePasswordEvent(
+                        empId: widget.empId,
+                        oldPassword: _oldPasswordController.text,
+                        newPassword: _newPasswordController.text,
+                      ),
+                    );
+                  }, 'Submit');
+                },
+              ),
+            ),
+          )
         ],
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: BlocConsumer<UserBloc, UserState>(
-          bloc: context.read<UserBloc>(),
-          listener: (context, state) {
-            if (state is UserErrorState) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.error)));
-            } else if (state is UserPasswordChangedState) {
-              MyScaffoldMessenger.scaffoldSuccessMessage(context, 'Password changed successfully!', Colors.green);
-              context.pop();
-            }
-          },
-          builder: (context, state) {
-            if (state is UserLoadingState) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return ButtonsFun(() {
-              context.read<UserBloc>().add(
-                ChangePasswordEvent(
-                  empId: widget.empId,
-                  oldPassword: _oldPasswordController.text,
-                  newPassword: _newPasswordController.text,
-                ),
-              );
-            }, 'Submit');
-          },
-        ),
       ),
     );
   }

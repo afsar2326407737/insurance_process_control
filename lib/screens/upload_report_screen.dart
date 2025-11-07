@@ -347,18 +347,10 @@ class _UploadReportScreenState extends State<UploadReportScreen> {
               ),
               child: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF8E2DE2), Color(0xFF6A82FB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Color(0xFF003B71),
                 ),
                 child: const FlexibleSpaceBar(
-                  titlePadding: EdgeInsetsDirectional.only(
-                    start: 16,
-                    bottom: 12,
-                    end: 16,
-                  ),
+                  centerTitle: true,
                   title: Text(
                     'Upload Report',
                     style: TextStyle(

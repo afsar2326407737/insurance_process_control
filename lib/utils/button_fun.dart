@@ -12,11 +12,7 @@ class ButtonsFun extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration:  BoxDecoration(
-        gradient: LinearGradient(
-          colors: ColorsClass().button_color_1,
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
+        color: Color(0xFF003B71),
         borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
       child: ElevatedButton(

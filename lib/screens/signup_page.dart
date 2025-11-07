@@ -292,34 +292,37 @@ class _SignupPageState extends State<SignupPage> {
                             controller: _pageController,
                             physics: const NeverScrollableScrollPhysics(),
                             children: [
-                              Column(
-                                children: [
-                                  const SizedBox(height: 10),
-                                  _buildEmpIdField(),
-                                  const SizedBox(height: 20),
-                                  InputFields(
-                                    _userNameController,
-                                    'Enter the User Name',
-                                    false,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  InputFields(
-                                    _userEmailController,
-                                    'Enter the Email',
-                                    false,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Email is required';
-                                      }
-                                      if (!RegExp(
-                                        r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                      ).hasMatch(value)) {
-                                        return 'Enter a valid email';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ],
+                              SingleChildScrollView(
+
+                                child: Column(
+                                  children: [
+                                    const SizedBox(height: 10),
+                                    _buildEmpIdField(),
+                                    const SizedBox(height: 20),
+                                    InputFields(
+                                      _userNameController,
+                                      'Enter the User Name',
+                                      false,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    InputFields(
+                                      _userEmailController,
+                                      'Enter the Email',
+                                      false,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Email is required';
+                                        }
+                                        if (!RegExp(
+                                          r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                        ).hasMatch(value)) {
+                                          return 'Enter a valid email';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
 
                               /// Step 2 → Branch

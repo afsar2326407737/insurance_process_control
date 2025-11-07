@@ -32,9 +32,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           SliverAppBar(
             expandedHeight: 130,
             floating: true,
+            centerTitle: false,
             snap: true,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
               title: Text(
                 'Help and Support',
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -44,11 +44,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               ),
               background: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF8E2DE2), Color(0xFF6A82FB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Color(0xFF003B71),
                 ),
               ),
             ),
