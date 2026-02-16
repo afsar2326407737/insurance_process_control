@@ -128,9 +128,8 @@ class CouchbaseServices {
         );
 
     final resultSet = await query.execute();
-    final result = (await resultSet.allResults())
-        .map((r) => r.toPlainMap())
-        .toList();
+    final result =
+        (await resultSet.allResults()).map((r) => r.toPlainMap()).toList();
     return result;
   }
 
@@ -148,9 +147,8 @@ class CouchbaseServices {
         );
 
     final resultSet = await query.execute();
-    final result = (await resultSet.allResults())
-        .map((r) => r.toPlainMap())
-        .toList();
+    final result =
+        (await resultSet.allResults()).map((r) => r.toPlainMap()).toList();
     return result;
   }
 
@@ -158,7 +156,7 @@ class CouchbaseServices {
   Future<PaginatedInspections> fetchInspections({required int page}) async {
     final db = CouchbaseHelper.db;
     final collection = await db.defaultCollection;
-    final query =  QueryBuilder()
+    final query = QueryBuilder()
         .select(SelectResult.expression(Meta.id), SelectResult.all())
         .from(DataSource.collection(collection))
         .where(
@@ -188,7 +186,7 @@ class CouchbaseServices {
       }
     }
 
-    final metaQuery =  QueryBuilder()
+    final metaQuery = QueryBuilder()
         .select(SelectResult.all())
         .from(DataSource.collection(collection))
         .where(
@@ -226,43 +224,72 @@ class CouchbaseServices {
     String? type,
   }) async {
     final db = CouchbaseHelper.db;
+    final db_collection = await db.defaultCollection;
 
-    final lowerQuery = query?.toLowerCase() ?? '';
+    final List<ExpressionInterface> conditions = [];
 
-    final buffer = StringBuffer('''
-        SELECT *
-        FROM _
-        WHERE type = 'inspection'
-  ''');
+    conditions.add(
+      Expression.property('type').equalTo(Expression.string('inspection')),
+    );
 
+    //for Search query
     if (query != null && query.isNotEmpty) {
-      buffer.write('''
-      AND (
-        LOWER(inspection_id) LIKE '%$lowerQuery%'
-        OR LOWER(property_name) LIKE '%$lowerQuery%'
-        OR LOWER(address) LIKE '%$lowerQuery%'
-      )
-    ''');
+      final lowerQuery = query.toLowerCase();
+      final pattern = '%$lowerQuery%';
+
+      final inspectionIdExp = Function_.lower(
+        Expression.property('inspection_id'),
+      ).like(Expression.string(pattern));
+
+      final propertyNameExp = Function_.lower(
+        Expression.property('property_name'),
+      ).like(Expression.string(pattern));
+
+      final addressExp = Function_.lower(
+        Expression.property('address'),
+      ).like(Expression.string(pattern));
+
+      conditions.add(inspectionIdExp.or(propertyNameExp).or(addressExp));
     }
 
+    //status filter
     if (status != null && status.isNotEmpty) {
-      buffer.write(" AND status = '$status'");
+      conditions.add(
+        Expression.property(
+          'status',
+        ).equalTo(Expression.string(status.toLowerCase())),
+      );
     }
 
+    //priority filter
     if (priority != null && priority.isNotEmpty) {
-      buffer.write(" AND priority = '$priority'");
+      conditions.add(
+        Expression.property('priority').equalTo(Expression.string(priority)),
+      );
     }
 
+    //Type filter
     if (type != null && type.isNotEmpty) {
-      buffer.write(" AND inspection_type = '$type'");
+      conditions.add(
+        Expression.property('inspection_type').equalTo(Expression.string(type)),
+      );
     }
 
-    final queryStr = buffer.toString();
+    //combain all conditions with AND
+    ExpressionInterface whereClause = conditions.first;
+    for (int i = 1; i < conditions.length; i++) {
+      whereClause = whereClause.and(conditions[i]);
+    }
 
-    final queryObj = await db.createQuery(queryStr);
-    final resultSet = await queryObj.execute();
-    final results = await resultSet.allResults();
-    return results.map((r) => r.toPlainMap()).toList();
+    final queryBuilder = QueryBuilder()
+        .select(SelectResult.all())
+        .from(DataSource.collection(db_collection))
+        .where(whereClause);
+
+    final resultSet = await queryBuilder.execute();
+    final result = await resultSet.allResults();
+
+    return result.map((r) => r.toPlainMap()).toList();
   }
 
   /// add new inspection data
@@ -272,7 +299,7 @@ class CouchbaseServices {
     final db = CouchbaseHelper.db;
     final collection = await db.defaultCollection;
 
-    final metaQueryWithId =  QueryBuilder()
+    final metaQueryWithId = QueryBuilder()
         .select(SelectResult.expression(Meta.id), SelectResult.all())
         .from(DataSource.collection(collection))
         .where(
@@ -298,7 +325,7 @@ class CouchbaseServices {
     }
 
     /// count no of inspections in the last page
-    final countQuery =  QueryBuilder()
+    final countQuery = QueryBuilder()
         .select(SelectResult.expression(Meta.id))
         .from(DataSource.collection(collection))
         .where(
@@ -365,7 +392,7 @@ class CouchbaseServices {
   Future<void> printMetaResult() async {
     final db = CouchbaseHelper.db;
     final collection = await db.defaultCollection;
-    final countQuery =  QueryBuilder()
+    final countQuery = QueryBuilder()
         .select(SelectResult.expression(Meta.id))
         .from(DataSource.collection(collection))
         .where(
@@ -631,10 +658,11 @@ class CouchbaseServices {
       final resultSet = await query.execute();
       final results = await resultSet.allResults();
 
-      final requests = results.map((result) {
-        final map = result.toPlainMap();
-        return SupportRequest.fromMap(map);
-      }).toList();
+      final requests =
+          results.map((result) {
+            final map = result.toPlainMap();
+            return SupportRequest.fromMap(map);
+          }).toList();
 
       log(
         '✅ Retrieved ${requests.length} support requests',
