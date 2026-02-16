@@ -1,12 +1,9 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:i_p_c/components/font_style.dart';
 import 'package:i_p_c/model/user_model.dart';
 import 'package:i_p_c/repository/couchbase_helper.dart';
-import 'package:i_p_c/repository/couchbase_services.dart';
 import 'package:i_p_c/repository/database_helper.dart';
 import 'package:i_p_c/repository/sharedpref_helper.dart';
 import 'package:i_p_c/screens/change_password.dart';
@@ -18,7 +15,6 @@ import 'package:i_p_c/screens/login_screen.dart';
 import 'package:i_p_c/screens/properties_detail_screen.dart';
 import 'package:i_p_c/screens/upload_report_screen.dart';
 import 'package:i_p_c/screens/search_screen.dart';
-import 'package:i_p_c/screens/settings_drawer.dart';
 import 'package:i_p_c/screens/signup_page.dart';
 import 'bloc/inspection_bloc/inspection_bloc.dart';
 import 'bloc/search/search_bloc.dart';
