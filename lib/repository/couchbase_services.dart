@@ -569,14 +569,24 @@ class CouchbaseServices {
   Future<int> countNewPolicyInspections() async {
     try {
       final db = CouchbaseHelper.db;
-      final buffer = StringBuffer('''
-      SELECT COUNT(*) AS totalCount
-      FROM ${db.name}
-      WHERE type = 'inspection'
-        AND inspection_type = 'New Policy'
-    ''');
+      final collections = await db.defaultCollection;
 
-      final query = await db.createQuery(buffer.toString());
+      final query = QueryBuilder()
+          .select(
+            SelectResult.expression(
+              Function_.count(Expression.string('*')),
+            ).as('totalCount'),
+          )
+          .from(DataSource.collection(collections))
+          .where(
+            Expression.property('type')
+                .equalTo(Expression.string('inspection'))
+                .and(
+                  Expression.property(
+                    'inspection_type',
+                  ).equalTo(Expression.string('New Policy')),
+                ),
+          );
       final resultSet = await query.execute();
       final results = await resultSet.allResults();
 
@@ -596,15 +606,23 @@ class CouchbaseServices {
   Future<int> countHighPriorityInspections() async {
     try {
       final db = CouchbaseHelper.db;
+      final collections = await db.defaultCollection;
 
-      final buffer = StringBuffer('''
-      SELECT COUNT(*) AS totalCount
-      FROM ${db.name}
-      WHERE type = 'inspection'
-        AND priority = 'High'
-    ''');
+      final whereClass = Expression.property('type')
+          .equalTo(Expression.string('inspection'))
+          .and(
+            Expression.property('priority').equalTo(Expression.string('High')),
+          );
 
-      final query = await db.createQuery(buffer.toString());
+      final query = QueryBuilder()
+          .select(
+            SelectResult.expression(
+              Function_.count(Expression.string('*')),
+            ).as('totalCount'),
+          )
+          .from(DataSource.collection(collections))
+          .where(whereClass);
+
       final resultSet = await query.execute();
       final results = await resultSet.allResults();
 
@@ -644,17 +662,22 @@ class CouchbaseServices {
   Future<List<SupportRequest>> getAllSupportRequests() async {
     try {
       final db = CouchbaseHelper.db;
+      final collections = await db.defaultCollection;
 
-      final buffer = StringBuffer('''
-        SELECT employee_id,
-               message,
-               timestamp
-        FROM ${db.name}
-        WHERE type = 'support_request'
-        ORDER BY timestamp DESC
-      ''');
+      final whereClass = Expression.property(
+        'type',
+      ).equalTo(Expression.string('support_request'));
 
-      final query = await db.createQuery(buffer.toString());
+      final query = QueryBuilder()
+          .select(
+            SelectResult.expression(Expression.property('employee_id')),
+            SelectResult.expression(Expression.property('message')),
+            SelectResult.expression(Expression.property('timestamp')),
+          )
+          .from(DataSource.collection(collections))
+          .where(whereClass)
+          .orderBy(Ordering.property('timestamp').descending());
+
       final resultSet = await query.execute();
       final results = await resultSet.allResults();
 
