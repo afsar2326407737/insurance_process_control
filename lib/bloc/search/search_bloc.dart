@@ -20,37 +20,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SearchFilterCleared>(_onSearchFilterCleared);
   }
 
-  Future<void> _performSearch(Emitter<SearchState> emit) async {
-    emit(SearchLoading());
-    try {
-      final query = _currentQuery.trim().toLowerCase();
-
-      final allResults = await CouchbaseServices().queryInspections(
-        query: query,
-        status: _status,
-        priority: _priority,
-        type: _inspectionType,
-      );
-
-      final inspections = allResults
-          .map((item) =>
-          Inspection.fromJson(item['_'] as Map<String, dynamic>))
-          .toList();
-
-
-      emit(SearchLoaded(
-        results: inspections,
-        query: _currentQuery,
-        status: _status,
-        priority: _priority,
-        inspectionType: _inspectionType,
-      ));
-    } catch (e) {
-      emit(SearchError(e.toString()));
-    }
-  }
-
-
   Future<void> _onSearchQueryChanged(
       SearchQueryChanged event, Emitter<SearchState> emit) async {
     _currentQuery = event.query.toLowerCase();
@@ -72,5 +41,35 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     _priority = null;
     _inspectionType = null;
     await _performSearch(emit);
+  }
+
+  Future<void> _performSearch(Emitter<SearchState> emit) async {
+    emit(SearchLoading());
+    try {
+      final query = _currentQuery.trim().toLowerCase();
+
+      final allResults = await CouchbaseServices().queryInspections(
+        query: query,
+        status: _status,
+        priority: _priority,
+        type: _inspectionType,
+      );
+
+      final inspections= allResults
+          .map((item) =>
+          Inspection.fromJson(item['_default'] as Map<String, dynamic>))
+          .toList();
+
+
+      emit(SearchLoaded(
+        results: inspections,
+        query: _currentQuery,
+        status: _status,
+        priority: _priority,
+        inspectionType: _inspectionType,
+      ));
+    } catch (e) {
+      emit(SearchError(e.toString()));
+    }
   }
 }
